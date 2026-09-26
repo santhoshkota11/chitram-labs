@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.signal import fftconvolve, butter, sosfilt
 from scipy.io import wavfile
-SR=48000; D=30.0; N=int(SR*D)
+SR=48000; D=36.5; N=int(SR*D)
 t=np.arange(N)/SR
 L=np.zeros(N); R=np.zeros(N)
 rng=np.random.default_rng(3)
@@ -29,9 +29,9 @@ chords=[ (0.0, [50,57,62,64,69]),      # D add9 (dark hook)
          (16.0,[50,57,62,66,69,73]),   # Dmaj9 (discover)
          (18.5,[47,54,62,66,69,74]),   # Bm
          (21.0,[43,50,59,62,67,71]),   # G (dashboard)
-         (24.0,[40,47,55,59,62,67]),   # Em9 (trust)
-         (27.0,[45,52,57,61,64,69]),   # A sus-ish (lift)
-         (28.0,[50,57,62,66,69,74,78])]# D resolve
+         (24.4,[40,47,55,59,62,67]),   # Em9 (trust)
+         (28.3,[45,52,57,61,64,69]),   # A sus-ish (lift)
+         (32.8,[50,57,62,66,69,74,78])]# D resolve
 for k,(st,notes) in enumerate(chords):
     en=chords[k+1][0] if k+1<len(chords) else D
     dur=en-st+1.2; n=int(dur*SR); tt=np.arange(n)/SR
@@ -47,7 +47,7 @@ for k,(st,notes) in enumerate(chords):
     sig*=env(n,1.0 if st>0 else 1.6,1.2)
     trem=1+0.08*np.sin(2*np.pi*0.25*tt)
     g=0.30 if st<3 else 0.34
-    if st>=28: g=0.40
+    if st>=32: g=0.40
     add(sig*trem,st,g,-0.25); add(np.roll(sig,480)*trem,st,g,0.25)
 
 # ---- warm pulse: soft sub thump + filtered 8th pluck from 3.0s ----
@@ -67,9 +67,9 @@ def root_at(x):
         if x>=k: r=bassroot[k]
     return r
 x=3.0
-while x<27.4:
+while x<28.3:
     if not (15.0<=x<16.0):
-        g=0.5 if x<24 else 0.32
+        g=0.5 if x<24.4 else 0.32
         add(thump(),x,g)
         add(pluck(root_at(x)+24),x+beat/2,0.07,0.3)
         add(pluck(root_at(x)+31),x+beat*0.75,0.045,-0.3)
@@ -83,10 +83,8 @@ def piano(m,dur=2.8):
         s+=a*np.sin(2*np.pi*fh*tt)*np.exp(-tt*(1.3+h*0.9))
     s*=np.minimum(1,tt/0.004)
     return lp(s,5000)
-notes=[(0.9,74),(1.9,78),(2.6,76),(4.7,81),(5.6,78),(7.7,74),(8.6,78),(9.3,73),
-       (11.05,78),(12.3,81),(13.5,83),(17.0,81),(18.3,78),(19.6,76),(22.15,79),(23.0,83),
-       (28.0,74),(28.0,78),(28.02,81),(28.05,86)]
-for st,m in notes: add(piano(m,3.2 if st<28 else 2.0),st,0.13,rng.uniform(-.4,.4))
+notes=[(1.5,74),(3.2,78),(7.0,78),(10.0,73),(16.0,81),(21.0,79),(24.5,76),(28.3,81),(32.85,74),(32.85,78),(32.87,81),(32.9,86)]
+for st,m in notes: add(piano(m,3.2 if st<32 else 3.0),st,0.11,rng.uniform(-.4,.4))
 
 # ---- glassy shimmer on card lifts ----
 def shimmer():
@@ -96,7 +94,7 @@ def shimmer():
     nz=hp(rng.standard_normal(n),6000)*np.exp(-tt*8)*np.minimum(1,tt/0.05)*0.25
     rise=np.linspace(0.6,1,n)
     return (s*0.3+nz)*rise
-for st in [10.95,12.2,13.4,16.35,16.85,17.25,24.35,25.15,25.95]:
+for st in [10.95,12.2,13.4,16.35,16.85,17.25,24.85,25.8,26.75]:
     add(shimmer(),st,0.10,rng.uniform(-.6,.6))
 
 # ---- whoosh at the whip ----
@@ -123,21 +121,21 @@ def riser(dur,f0,f1):
     s=np.sin(2*np.pi*np.cumsum(f)/SR)+0.4*np.sin(2*np.pi*np.cumsum(f*1.5)/SR)
     s+=lp(rng.standard_normal(n),600)*0.6*(tt/dur)
     return s*(tt/dur)**2*np.minimum(1,(dur-tt)/0.08)
-add(riser(1.4,45,90),22.6,0.20)
-add(riser(1.2,55,110),25.9,0.13)
-add(riser(0.9,70,140),27.1,0.12)
+add(riser(1.2,45,90),23.3,0.20)
+add(riser(0.8,55,110),27.6,0.12)
+add(riser(0.9,70,140),31.95,0.12)
 
 # ---- warm resolved chime on the logo ----
-n=int(2.2*SR); tt=np.arange(n)/SR; ch=np.zeros(n)
+n=int(3.2*SR); tt=np.arange(n)/SR; ch=np.zeros(n)
 for m,a in [(74,1),(81,.7),(86,.6),(90,.35),(93,.25)]:
     f=hz(m)
     for h,ha in [(1,1),(2.76,.25),(5.4,.08)]:
         ch+=a*ha*np.sin(2*np.pi*f*h*tt)*np.exp(-tt*(1.6+h*0.8))
 ch*=np.minimum(1,tt/0.003)
-add(ch,28.0,0.16)
+add(ch,32.85,0.16)
 # soft low bloom under the chime
 n=int(2.0*SR); tt=np.arange(n)/SR
-add(np.sin(2*np.pi*hz(38)*tt)*np.exp(-tt*1.4)*np.minimum(1,tt/0.02),28.0,0.35)
+add(np.sin(2*np.pi*hz(38)*tt)*np.exp(-tt*1.4)*np.minimum(1,tt/0.02),32.85,0.35)
 # soft impact as the laptop settles
 add(thump()*1.0,3.0,0.5); add(lp(rng.standard_normal(int(1.5*SR)),400)*np.exp(-np.arange(int(1.5*SR))/SR*3)*0.3,3.0,0.5)
 
@@ -148,12 +146,42 @@ irL=lp(irL,6000); irR=lp(irR,6000)
 irL/=np.sqrt((irL**2).sum()); irR/=np.sqrt((irR**2).sum())
 wetL=fftconvolve(L,irL)[:N]; wetR=fftconvolve(R,irR)[:N]
 oL=L*0.8+wetL*0.45; oR=R*0.8+wetR*0.45
-# master: gentle fade out at the very end, soft clip, normalize
-fade=np.ones(N); fi=int(0.6*SR); fade[-fi:]=np.linspace(1,0,fi)**1.5
+music=np.stack([oL,oR],1)
+
+# ---- voiceover: each phrase placed on its caption (source sped up 1.08x) ----
+import os
+from scipy.io import wavfile as wf
+TEMPO=1.08
+_,vo=wf.read(os.environ.get('VO_FAST','vo_fast.wav')); vo=vo.astype(np.float64)/32768.0
+PHRASES=[(0.00,1.19,0.35),(1.64,3.11,1.60),(3.56,4.48,4.80),(4.96,5.74,5.80),(6.21,6.93,7.75),(7.35,9.14,8.50),
+ (9.62,10.14,11.10),(10.58,11.21,12.35),(11.66,12.42,13.55),(12.86,14.81,16.50),(15.24,16.36,18.45),(16.82,17.88,19.65),
+ (18.36,18.93,21.35),(19.39,19.81,21.98),(20.27,20.99,22.50),(21.47,22.63,23.30),(23.11,24.18,25.15),(24.63,25.55,26.15),
+ (25.97,27.44,27.10),(27.90,30.38,29.15),(30.74,31.94,31.55),(32.42,32.93,32.90),(33.37,34.73,33.45),(35.17,35.85,34.80)]
+V=np.zeros((N,2)); PRE,POST=0.04,0.10
+for a,b,dst in PHRASES:
+    i0=int(max(0,a/TEMPO-PRE)*SR); i1=min(len(vo),int((b/TEMPO+POST)*SR))
+    seg=vo[i0:i1].copy(); n=len(seg); f=int(0.012*SR); g=int(0.06*SR)
+    seg[:f]*=np.linspace(0,1,f)[:,None]; seg[-g:]*=np.linspace(1,0,g)[:,None]
+    j=int((dst-PRE)*SR); m=min(n,N-j); V[j:j+m]+=seg[:m]
+# gentle room on the voice so it sits in the score
+vr=np.stack([fftconvolve(V[:,0],irL)[:N],fftconvolve(V[:,1],irR)[:N]],1)
+V=V+vr*0.08
+V=V/np.max(np.abs(V))*0.80
+# duck the music under the voice
+envv=np.abs(V).max(1); win=int(0.03*SR)
+envv=np.convolve(envv,np.ones(win)/win,'same')
+act=(envv>0.02).astype(float)
+duck=np.zeros(N); a_c=np.exp(-1/(0.06*SR)); r_c=np.exp(-1/(0.35*SR)); y=0.0
+for k in range(0,N,48):
+    x=act[k]; c=a_c if x>y else r_c; y=c*y+(1-c)*x; duck[k:k+48]=y
+music=music/np.max(np.abs(music))*0.55
+music=music*(1-0.55*duck)[:,None]
+# master: fades, soft clip, normalize
+fade=np.ones(N); fi=int(0.9*SR); fade[-fi:]=np.linspace(1,0,fi)**1.5
 fin=int(0.05*SR); fade[:fin]=np.linspace(0,1,fin)
-oL*=fade; oR*=fade
-st=np.stack([oL,oR],1)
-st=np.tanh(st*1.1)
-st=st/np.max(np.abs(st))*0.89
-wavfile.write('hf/aasthi/assets/score.wav',SR,(st*32767).astype(np.int16))
+st=(music+V)*fade[:,None]
+st=np.tanh(st*1.05)
+st=st/np.max(np.abs(st))*0.92
+out=os.environ.get('OUT','score.wav')
+wavfile.write(out,SR,(st*32767).astype(np.int16))
 print('ok', np.sqrt((st**2).mean()))

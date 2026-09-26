@@ -150,7 +150,7 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:#0B0B0E}
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1920" data-height="1080">
+<div id="root" data-composition-id="main" data-start="0" data-duration="36.5" data-width="1920" data-height="1080">
 
 
   <div id="bokehBack" class="layer">
@@ -285,7 +285,9 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:#0B0B0E}
     <div class="t serif ink dark" id="d2" style="left:1130px;top:445px;width:740px;font-size:76px;line-height:1.04">review the details.<span class="sw">review the details.</span></div>
     <div class="t serif ink dark" id="d3" style="left:1130px;top:555px;width:740px;font-size:76px;line-height:1.04">choose what works for you.<span class="sw">choose what works for you.</span></div>
 
-    <div class="t serif ink dark" id="h3" style="left:140px;top:360px;width:680px;font-size:92px;line-height:1.04"><span class="ln">invest. track.</span><span class="ln">stay updated.</span><span class="ln" style="font-style:italic;color:#6b5a45">all from one dashboard.</span><span class="sw"><span class="ln">invest. track.</span><span class="ln">stay updated.</span><span class="ln" style="font-style:italic">all from one dashboard.</span></span></div>
+    <div class="t serif ink dark" id="h3a" style="left:140px;top:340px;width:700px;font-size:92px;line-height:1.04">invest. track.<span class="sw">invest. track.</span></div>
+    <div class="t serif ink dark" id="h3b" style="left:140px;top:436px;width:700px;font-size:92px;line-height:1.04">stay updated.<span class="sw">stay updated.</span></div>
+    <div class="t serif ink dark" id="h3c" style="left:140px;top:532px;width:640px;font-size:92px;line-height:1.04;font-style:italic;color:#6b5a45">all from one dashboard.<span class="sw">all from one dashboard.</span></div>
   </div>
 
   <!-- foreground bokeh -->
@@ -308,7 +310,7 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:#0B0B0E}
     <div class="t" id="tag" style="left:0;right:0;top:636px;text-align:center;font:500 30px/1 'Inter';letter-spacing:.12em;color:rgba(255,255,255,.78)">India's private markets. From anywhere.</div>
   </div>
 
-  <audio id="score" src="assets/score.wav" data-start="0" data-duration="30" data-track-index="1" data-volume="1"></audio>
+  <audio id="score" src="assets/score.wav" data-start="0" data-duration="36.5" data-track-index="1" data-volume="1"></audio>
 </div>
 
 <script>
@@ -357,12 +359,12 @@ tl.set('#bokehBack',{opacity:0},0);
 
 // ambient bokeh drift (slow, finite)
 [['#bk1',40,-30],['#bk2',-50,40],['#bk3',30,-40],['#bk4',-40,-30],['#bk5',60,30]].forEach(([s,x,y],i)=>{
-  tl.to(s,{x:x,y:y,duration:7.5,ease:S,yoyo:true,repeat:3},0.2*i);
+  tl.to(s,{x:x,y:y,duration:7.5,ease:S,yoyo:true,repeat:4},0.2*i);
 });
 
 /* 00:00–00:03 HOOK */
 tl.fromTo('#c0',{opacity:0,y:10},{opacity:1,y:0,duration:.9,ease:E},0.25);
-reveal('#h0',0.9,{dur:1.1,blur:22});
+reveal('#h0',1.4,{dur:1.0,blur:22});
 hide('#h0',3.0,0.6,{blur:18});
 hide('#c0',2.95,0.5,{y:0});
 
@@ -374,7 +376,7 @@ tl.to('#rig',{y:110,duration:2.6,ease:'power3.out'},3.2);
 tl.to('#rig',{rotationY:-9,rotationX:-6,duration:3.2,ease:'power2.out'},3.2);
 tl.fromTo('#floor',{opacity:0,scale:.6},{opacity:1,scale:1,duration:1.8,ease:E},4.3);
 tl.to('#rig',{rotationY:-4,x:290,duration:.6,ease:S},6.4);
-tl.to('#bob',{y:-12,duration:1.7,ease:S,yoyo:true,repeat:13},5.4);
+tl.to('#bob',{y:-12,duration:1.7,ease:S,yoyo:true,repeat:17},5.4);
 gloss(4.9,1.8);
 reveal('#h1',4.7,{dur:1.1});
 hide('#h1',6.75,0.5);
@@ -390,7 +392,7 @@ tl.to('#bokehBack',{opacity:.35,duration:1.4,ease:IO},7.1);
   tl.to(s,{opacity:0,duration:.8,ease:'none'},9.4+dt*0.5);
 });
 reveal('#h2',7.7,{dur:1.1});
-hide('#h2',9.85,0.5);
+hide('#h2',10.15,0.45);
 
 /* 00:10–00:15 APPLY · VERIFY · GET ACCESS */
 tl.to('#scrHIW',{clipPath:'inset(0 0 0 0%)',duration:.9,ease:IO},9.95);
@@ -443,10 +445,10 @@ tl.to('#L4',{y:-92,duration:3.4,ease:S},17.45);
 tl.to('#f1',{y:-166,duration:3.0,ease:S},17.96);
 tl.to('#f2',{y:-240,rotationZ:-7,duration:2.6,ease:S},18.35);
 gloss(16.6,1.6);
-reveal('#d1',17.0);
-dim('#d1',18.2); reveal('#d2',18.3);
+reveal('#d1',16.45);
+dim('#d1',18.35); reveal('#d2',18.4);
 dim('#d2',19.5); reveal('#d3',19.6);
-['#d1','#d2','#d3'].forEach(s=>hide(s,20.75,0.45,{y:0}));
+['#d1','#d2','#d3'].forEach(s=>hide(s,20.8,0.45,{y:0}));
 
 /* 00:21–00:24 ONE DASHBOARD */
 tl.to(['#L4','#f1','#f2'],{z:0,x:0,y:0,rotationZ:0,rotationY:0,rotationX:0,scale:1,duration:.8,ease:'power2.inOut'},20.9);
@@ -461,41 +463,41 @@ tl.fromTo('#line',{strokeDasharray:L,strokeDashoffset:L},{strokeDashoffset:0,dur
 tl.fromTo('#areaRect',{attr:{width:0}},{attr:{width:700},duration:1.7,ease:'power2.inOut'},22.0);
 tl.to('#dotEnd',{opacity:1,duration:.3},23.6);
 gloss(22.3,1.6);
-reveal('#h3',22.15);
-hide('#h3',23.75,0.45);
+reveal('#h3a',21.3); reveal('#h3b',22.45); reveal('#h3c',23.25);
+['#h3a','#h3b','#h3c'].forEach(s=>hide(s,24.25,0.45));
 
 /* 00:24–00:27 BUILT FOR TRUST */
-tl.to('#stage',{opacity:0,duration:.5,ease:'power1.in'},23.85);
-tl.to('#bgCream',{opacity:0,duration:.55,ease:'power1.in'},23.85);
-tl.to('#bokehBack',{opacity:0,duration:.5},23.85);
-tl.to('#trust',{opacity:1,duration:.4},24.1);
-for(let i=0;i<16;i++){tl.fromTo('#sk'+i,{y:0},{y:-(1500+(i%5)*160),duration:3.2,ease:'none'},24.0+(i%4)*0.12);}
-const tcs=[['#tc1',-500,-7,24.35],['#tc2',0,0,25.15],['#tc3',500,7,25.95]];
+tl.to('#stage',{opacity:0,duration:.5,ease:'power1.in'},24.35);
+tl.to('#bgCream',{opacity:0,duration:.55,ease:'power1.in'},24.35);
+tl.to('#bokehBack',{opacity:0,duration:.5},24.35);
+tl.to('#trust',{opacity:1,duration:.4},24.6);
+for(let i=0;i<16;i++){tl.fromTo('#sk'+i,{y:0},{y:-(1500+(i%5)*160),duration:4.2,ease:'none'},24.5+(i%4)*0.12);}
+const tcs=[['#tc1',-500,-7,24.85],['#tc2',0,0,25.8],['#tc3',500,7,26.75]];
 tcs.forEach(([s,x,ry,t],i)=>{
   tl.fromTo(s,{opacity:0,x:x*1.12,y:60,z:-700,scale:1.12,rotationY:ry*4,rotationX:10},{opacity:1,y:0,z:0,scale:1.12,rotationY:ry,rotationX:5,duration:1.2,ease:E},t);
   tl.fromTo(s+' .rimL',{opacity:0},{opacity:1,duration:.7,ease:IO},t+.55);
-  tl.to(s,{rotationY:ry*-0.4,rotationX:2,y:-12,duration:2.9-(i*.8),ease:S},t+1.2);
+  tl.to(s,{rotationY:ry*-0.4,rotationX:2,y:-12,duration:28.4-(t+1.2),ease:S},t+1.2);
   reveal('#tx'+(i+1),t+.3,{dur:.9});
 });
-tl.to(['#tc1','#tc2','#tc3'],{z:260,opacity:0,filter:'blur(10px)',duration:.6,ease:'power2.in'},26.85);
-['#tx1','#tx2','#tx3'].forEach(s=>hide(s,26.8,0.45,{y:0}));
-tl.to('#streaks',{opacity:0,duration:.5},26.9);
+tl.to(['#tc1','#tc2','#tc3'],{z:260,opacity:0,filter:'blur(10px)',duration:.6,ease:'power2.in'},28.45);
+['#tx1','#tx2','#tx3'].forEach(s=>hide(s,28.45,0.45,{y:0}));
+tl.to('#streaks',{opacity:0,duration:.5},28.5);
 
 /* 00:27–00:30 BRAND RESOLUTION */
-tl.set('#scrTrust',{opacity:1},26.7);
-tl.set('#floor',{opacity:.25},26.7);
-tl.set('#rig',{x:0,y:80,scale:.7,rotationX:-6,rotationY:22},26.7);
-tl.set('#stage',{x:0,filter:'blur(0px)'},26.7);
-tl.to('#stage',{opacity:1,duration:.4,ease:'power1.out'},26.95);
-tl.to('#rig',{scale:.56,y:60,rotationY:17,duration:1.3,ease:'power2.out'},26.95);
-gloss(27.0,1.0);
-tl.to('#stage',{opacity:0,filter:'blur(8px)',duration:.55,ease:'power1.in'},27.5);
-reveal('#e1',27.55,{dur:.6,blur:16});
-tl.to('#e1',{y:-190,scale:.82,duration:.55,ease:'power2.inOut'},28.0);
-tl.fromTo('#bloom',{opacity:0,scale:.6},{opacity:1,scale:1,duration:.55,ease:E},27.95);
-tl.fromTo('#lockup',{opacity:0,filter:'blur(16px)',scale:.94},{opacity:1,filter:'blur(0px)',scale:1,duration:.5,ease:E},28.0);
-tl.fromTo('#tag',{opacity:0,filter:'blur(10px)',y:10},{opacity:1,filter:'blur(0px)',y:0,duration:.35,ease:E},28.15);
-tl.to('#bloom',{scale:1.08,opacity:.8,duration:.75,ease:S,yoyo:true,repeat:1},28.5);
+tl.set('#scrTrust',{opacity:1},28.3);
+tl.set('#floor',{opacity:.25},28.3);
+tl.set('#rig',{x:0,y:80,scale:.7,rotationX:-6,rotationY:22},28.3);
+tl.set('#stage',{x:0,filter:'blur(0px)'},28.3);
+tl.to('#stage',{opacity:1,duration:.4,ease:'power1.out'},28.55);
+tl.to('#rig',{scale:.56,y:60,rotationY:15,duration:1.6,ease:'power2.out'},28.55);
+gloss(28.6,1.1);
+tl.to('#stage',{opacity:0,filter:'blur(8px)',duration:.5,ease:'power1.in'},29.0);
+reveal('#e1',29.3,{dur:.8,blur:16});
+tl.to('#e1',{y:-190,scale:.82,duration:.6,ease:'power2.inOut'},32.7);
+tl.fromTo('#bloom',{opacity:0,scale:.6},{opacity:1,scale:1,duration:.7,ease:E},32.75);
+tl.fromTo('#lockup',{opacity:0,filter:'blur(16px)',scale:.94},{opacity:1,filter:'blur(0px)',scale:1,duration:.55,ease:E},32.85);
+tl.fromTo('#tag',{opacity:0,filter:'blur(10px)',y:10},{opacity:1,filter:'blur(0px)',y:0,duration:.5,ease:E},33.35);
+tl.to('#bloom',{scale:1.08,opacity:.8,duration:1.1,ease:S,yoyo:true,repeat:2},33.5);
 
 window.__timelines["main"]=tl;
 </script>
