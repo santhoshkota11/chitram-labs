@@ -9,18 +9,42 @@ brief is what makes the build correct the first time. Fast means *fewer question
 
 ---
 
-## 0. The procedure (follow in order, every time)
+## 0. The levels (follow in order, every time)
 
-1. **Classify the input** (§1) → pick the intake path.
-2. **Audit every reference** (§2) → write the Product Truth sheet.
-3. **Lock the format** (§3): duration, aspect, fps, audio mode, finish-by time.
-4. **Write the story** (§4) → beats with durations that add up exactly.
-5. **Design the visual system** (§5): palette, type, backgrounds, materials, light, motion personality.
-6. **Choreograph** each beat with named, buildable effects (§6, §7) and audio cues (§8).
-7. **Run the brief quality gate** (§10). Fix anything that fails.
-8. **Emit** the Production Brief (§9.1) + Build Sheet (§9.2). Save both to `brief.md` in the project.
-9. Hand off to `ENGINE.md`. If the user only asked for a prompt (for another tool), stop after 8
-   and adapt the output with §11.
+The direction work runs in five levels. Each level has one output; nothing later re-asks what an
+earlier level settled.
+
+| Level | Name | Output | Sections |
+|---|---|---|---|
+| **L0** | Intake & triage | input path(s), video type, formed/unformed, run mode | §1, §1.6 |
+| **L1** | Understand | Reference audit + Product Truth; for reference *videos*: Shot Log + Style DNA | §2, §1.5 |
+| **L2** | Concept | one chosen concept (the "telling"), with the message sentence | §4.0 |
+| **L3** | Brief | Production Brief (timecoded, the user's prompt style), expanded and gated | §3–§8, §9.1, §10 |
+| **L4** | Storyboard | frame-table proposal + Build Sheet (+ optional sketch sheet) → hand-off to ENGINE | §9.2, §9.3 |
+
+Procedure:
+1. **Classify the input** (§1) → pick the intake path(s) and video type (§1.6); mark it *formed*
+   (message + material + occasion are readable) or *unformed* (a subject with no take on it).
+2. **Understand** (§2, §1.5) → Product Truth; Shot Log + Style DNA for every reference video.
+3. **Concept** (§4.0): formed requests keep the user's concept; unformed ones get a pitch round.
+4. **Lock the format** (§3): duration, aspect, fps, audio mode, finish-by time.
+5. **Write the story** (§4) → beats with durations that add up exactly.
+6. **Design the visual system** (§5).
+7. **Direct each beat** (§6, §6.5, §7) and the audio (§8). Expand, never pass through (§6.6).
+8. **Gate** (§10). Fix anything that fails.
+9. **Emit** the Production Brief (§9.1) + Storyboard proposal and Build Sheet (§9.2–9.3) into
+   `brief.md`. Hand off to `ENGINE.md`. If the user only asked for a prompt, stop and adapt (§11).
+
+### Run modes
+- **Collaborative** (default when the user is present and the request is unformed or big):
+  pause after L2 (show the pitch round) and after L4 (show the storyboard proposal); after the
+  build, show the storyboard sheet before the final render.
+- **Autonomous** ("just build it", "create fast", "don't ask", or a complete prompt was given):
+  make every decision yourself, write each one down with a one-line reason ("receipt"), post the
+  L2/L4 summaries as heads-ups without waiting, and still show a contact sheet with the delivery.
+  Autonomous never means skipping a level — the gates still run.
+- In both modes: ask a question only when the answer changes the film and can't be defaulted
+  (§1 "When to ask"), one question per message, recommended option first with its reason.
 
 ---
 
@@ -33,7 +57,9 @@ brief is what makes the build correct the first time. Fast means *fewer question
 | **C. Product refs** | Screenshots, mockups, logo, URL, footage, brand guide, VO | Audit (§2) first; the refs define the palette, copy and devices. Then continue as B (or A if a prompt came with them). |
 | **D. Vibe only** | "something premium", "like Apple", "CRED-style" | Translate the vibe with the Style Lexicon (§5.6) into a concrete visual system, then continue as B. |
 
-Inputs are usually mixed (e.g. A + C). Apply every path that matches.
+| **E. Reference video(s)** | "make it like this", a competitor ad, a film they love, their old video | Deconstruct it (§1.5) into a Shot Log + Style DNA. Borrow its grammar for the user's product; never copy its content. |
+
+Inputs are usually mixed (e.g. A + C, or B + E). Apply every path that matches.
 
 **Partial prompts.** If the prompt is cut off (starts mid-scene, e.g. "…00:38.5–00:42 | THE STATEMENT
 STACK"), build what is specified, keep its timecodes, and ask for the missing part **once** in your
@@ -54,6 +80,68 @@ takes a default:
 | Finish-by | All reveals done by `duration − 1.5 s`; hold the final frame (logo + tagline) to the end |
 | Tone | Premium, calm, confident |
 | Copy | Short lowercase lines; brand names and acronyms keep their case |
+
+### 1.5 Reference video → Shot Log + Style DNA (path E)
+
+A model can't watch video, so turn the video into things you *can* read:
+
+```bash
+python3 $SKILL/tools/analyze_video.py ref.mp4 --out refs/<name>_analysis
+```
+It writes `analysis.md` (shots with cut times, camera-motion guess, brightness, palette; *beats*
+inside continuous shots; audio tempo, hits and quiet spans; motion-energy curve) and image sheets:
+`shots_NN.jpg` (4 frames across every shot), `timeline_NN.jpg` (a frame every ~0.5–1 s — the film
+as a flipbook) and `overview.jpg`. **Read `analysis.md`, then every sheet.** Then write two blocks
+into `brief.md`:
+
+**Shot Log** — one row per beat (use the analysis times; correct them from the sheets):
+```
+| # | time        | frame / subject                  | camera            | type on screen            | enters by / exits by     | sound         |
+|---|-------------|----------------------------------|-------------------|---------------------------|--------------------------|---------------|
+| 1 | 0.00–3.50   | black void, centred serif line   | locked            | 2 lines, blur-in, sweep   | fade in / fade to cream  | pad + piano   |
+| 2 | 3.50–7.50   | laptop rises into cream studio   | orbit 3/4→front   | serif caption left        | continuous / push-in     | soft impact   |
+```
+
+**Style DNA** — what makes it *that* video, in transferable terms:
+```
+Structure:     hook → reveal → 3 proofs → trust → logo (6 beats in 30 s, avg beat 4.1 s)
+Rhythm:        slow-BUILD-breathe-PEAK(whip @ 50%)-breathe-hold; cuts on beat: 0% (continuous film)
+Camera:        weightless orbits + push-ins on one hero object; never cuts
+Transitions:   push through screen, light-streak whip ×1, fade through black ×2
+Type system:   lowercase serif 90–120 px, captions beside the hero, 1 idea per line, blur-in + sweep
+Palette logic: cream day / near-black night alternation; one brand accent per scene
+Signature:     UI cards peel off the screen into depth; gold light sweep over letters
+Sound:         warm pad bed, pulse from the reveal, shimmer per card, chime on the logo
+Density:       sparse — 1 hero + ≤ 1 caption per frame, ≥ 40 % empty space
+```
+
+**Transfer rules (style transfer, not copying):**
+- Borrow **grammar**: structure, beat lengths, rhythm, camera language, transition kinds, type
+  scale/placement logic, palette *logic*, sound logic, signature *mechanics*.
+- Never borrow **content**: their brand name, copy, logos, product UI, characters/people, music,
+  or distinctive artwork. Re-skin everything with the user's product truth and palette.
+- Scale the structure to the user's duration (keep the proportions of the beats, §4.1 shares).
+- If the reference has people/footage and the user has none, translate those beats into
+  product/typography beats (device, UI, kinetic type) and say so.
+- If several references disagree, pick one as the **spine** (structure/rhythm) and take only
+  named elements from the others ("spine: ref A; card-peel mechanic from ref B").
+
+### 1.6 Video type (the route) — decides the story template and defaults
+
+| Type | Recognise it by | Default length / aspect | Story template (§4.2) | Notes |
+|---|---|---|---|---|
+| **Product launch / brand film** | a product, site, app, screenshots, "launch/promo/ad" | 20–45 s · 16:9 | launch | device hero, UI peel-offs, trust, logo |
+| **Site / app showcase** | "show our site/app as it is" | 30–60 s · 16:9 | app demo | the real screens are the star; captions beside |
+| **Explainer (faceless)** | a topic, article, notes; nothing to sell | 30–90 s | explainer | invented diagrams, kinetic type, data (only real data) |
+| **Motion graphic / sting** | < 10 s, no narration, motion *is* the message: logo sting, title, stat, lower-third | 3–10 s | one beat | autonomous; at most one question |
+| **Music-driven** | a track given, "beat-synced", "lyric video" | track length | beat grid | analyse the track (analyze_video/align tools), cut on beats |
+| **Changelog / code** | a PR, release notes | 20–90 s | explainer | value first, code as evidence |
+| **Captions on footage** | talking-head clip + "captions/subtitles" | clip length | none | footage untouched; caption layer only |
+| **Overlays on footage** | talking-head + titles/lower-thirds/callouts | clip length | none | footage untouched; cards synced to speech |
+| **Social teaser** | reel/story/short/TikTok | 8–15 s · 9:16 | teaser | hook in frame 1; brand by 80 % |
+| **Other / custom** | anything else | as asked | closest template | — |
+
+Decks/interactive slides are not videos — say so and offer a video version instead.
 
 ---
 
@@ -118,6 +206,41 @@ propose the smallest fix in this order: (1) tighten gaps between phrases, (2) sp
 
 ## 4. Story
 
+### 4.0 Concept — the telling (L2)
+
+Facts don't make a film; a *telling* does. "Make a video about our app" is formed about the facts
+and unformed about the telling. Before any beat math:
+
+**If the user already has a concept** (a full prompt, or a clear picture): that is the concept.
+Echo it as the message sentence and move on.
+
+**If the request is unformed → pitch round.** Work this gate privately, then present.
+1. Answer four questions *specifically* for this subject:
+   - What does the subject look like — its own visual world (materials, places, objects, UI)?
+   - What does the target emotion look like as a frame (longing = space the eye wants to fill;
+     urgency = compression; trust = stillness and order; awe = one thing too big for the frame)?
+   - What does the playback surface demand (feed: win the first second; lobby screen: ambient;
+     vertical story: fast and close)?
+   - What does *every other* video on this subject look like? That is the thing to avoid.
+2. Write **five concepts from five different paths**: (a) the subject's own world, (b) the emotion,
+   (c) the audience (meet or break their expectation), (d) the cliché inverted, (e) an unusual
+   format (a letter, a countdown, a receipt, a front page, a map, a single continuous shot).
+3. **Tail rule:** estimate privately how likely a typical model would be to produce each concept.
+   At least **two** must be unlikely (< 10 %). If all five are typical, start over.
+4. **Silhouette rule:** sketch each concept's main shapes as rough boxes; two concepts with the
+   same silhouette are one concept — replace one.
+5. Present each in three lines: the idea in one sentence · its visual world (naming the one or
+   two effects/capabilities it rides, in plain words: "the UI cards peel off the laptop") · its
+   opening hook. Show all five, then recommend one with a reason. Mixing is a valid answer.
+6. **Autonomous:** run the same gate, pick the winner, and in the heads-up name the direction you
+   chose, why, and the most typical direction you deliberately left behind.
+7. **User knows nothing about video:** don't pitch or quiz. Offer 2–3 decision surfaces that
+   really change the result (where it plays · how long · how it should feel), each with 2–4 plain
+   options and a marked default; decide the rest and show the concept inside the brief summary.
+
+End L2 with the **message sentence**: *"This film tells [audience] that [one message]."* Every
+beat must trace back to it; a beat that can't is cut, not decorated.
+
 ### 4.1 The arc
 Every film, any length, follows this spine. Name each beat in the brief.
 
@@ -169,6 +292,17 @@ Every film, any length, follows this spine. Name each beat in the brief.
 - **Only the copy the user gave or approved appears on screen.** UI rebuilt from refs uses the refs'
   exact copy. Placeholder UI uses **skeleton bars**, not invented words or numbers.
 - Spell the brand exactly as the logo does. Put the spelling in QUALITY AND CONSTRAINTS.
+
+### 4.5 Story spine (value first)
+- **The hook speaks the viewer's language** — what they gain, avoid or finally feel — never the
+  product's internal vocabulary (feature names, file names, section headings). Numbers only when
+  they carry stakes and are real.
+- **The value claim (the message) lands by the second beat.** Everything after is evidence.
+  Self-test: delete the evidence beats — the rest must still state the value; delete the value
+  beats — if the film still "works", it was a feature tour, not a story.
+- **Visuals come from the source.** Mine the product's own screens, words, objects and motifs for
+  props before inventing any. If a prop could appear unchanged in another brand's video, replace it
+  with something only this product has.
 
 ---
 
@@ -261,6 +395,7 @@ how long, what it reveals) and mark it `CUSTOM` in the Build Sheet.
 | gold-and-violet light-streak whip | `MK.whip` |
 | large rounded blob sweeps in as a wipe | `MK.blobWipe` |
 | fade through black / colour | `MK.fadeThrough` |
+| scene crossfade ("this continues") · blur crossfade · zoom through · push · whip pan · iris · blinds · shutter · colour dip · hard cut ("wake up") | `MK.transition` type `crossfade` · `blur` · `zoom` · `push` · `whipPan` · `iris` · `blinds` · `shutter` · `dip` · `cut` |
 | defocused bokeh drifting at the edges | `MK.bokeh` + `MK.drift` |
 | floating silver laptop, orbit, push-in to screen | `MK.laptop` + rig tweens (recipe 6.1) |
 | UI cards peel off the screen and float in depth | `MK.lift` / `MK.settle` (recipe 6.2) |
@@ -279,6 +414,41 @@ how long, what it reveals) and mark it `CUSTOM` in the Build Sheet.
 | floating glass UI assembly | recipe 6.3 |
 | chart line draws on with glow (no numbers) | recipe 6.4 |
 | logo lockup resolve (mark + wordmark + tagline) | recipe 6.5 |
+
+### 6.5 Direct each beat (a world, not a layout)
+
+For every beat write five things — before any pixels:
+1. **Concept** — 1–2 sentences: what world are we in, what should the viewer *feel*. ("The laptop
+   drifts up out of the dark like something surfacing; the studio warms around it.")
+2. **Mood references** in words, not hex ("Apple keynote product float", "Bauhaus colour study",
+   "editorial magazine spread").
+3. **Depth layers** — BG (void, glow, ghost type, light pools) · MG (the message: device, cards,
+   headline) · FG (accents: bokeh passing, hairlines, labels). At least two layers per beat.
+4. **A motion verb for every element.** If you can't name the verb, the element isn't designed.
+   Verbs by character — impact: *slams, drops, stamps* · directional: *slides, pushes, wipes* ·
+   reveal/build: *draws, fills, assembles, types on* · organic: *floats, drifts, breathes, orbits* ·
+   mechanical: *snaps, clicks, locks in, steps*. The verb follows the concept, not an "energy" level.
+5. **Transition out** with type and parameters ("light-streak whip, 0.8 s, streaks gold/violet,
+   stage blurs out right and back in from the left") and its **SFX**.
+
+Then declare the film's **rhythm** in one line before detailing scenes, e.g.
+`slow-BUILD · breathe · PUSH · list · WHIP · list · breathe · trust · HOLD`. Rhythm comes from the
+brand and message, not the duration: a 15 s ad for an architect and one for a game have different
+rhythms.
+
+### 6.6 Expand — never pass through
+
+Every brief, even a complete user prompt, gets enriched before the build. Keep the user's content
+and wording exactly; **add only the production layer** they didn't write:
+- atmosphere per scene (2–5 background elements: glows, ghost type, light pools, hairlines, bokeh),
+- a secondary (ambient) motion for each decorative (breathe, drift, pulse, orbit — finite loops),
+- transition choreography at the object level ("the card settles back *into* the screen and the
+  screen's content dissolves to the dashboard"), with duration and ease,
+- pacing inside each beat: build (first ~30 %) → breathe (~40 %, one ambient motion) → resolve,
+- exact values from the visual system (hex, font, size, ease) so the build guesses nothing.
+
+Never add: new on-screen copy, claims, numbers, logos, people, scenes or effects that change the
+story. Enrichment is decoration and precision, not new content.
 
 ---
 
@@ -394,6 +564,31 @@ One row per timed action. Times are absolute seconds. Every copy line appears ex
 Also list at the end: **assets to prepare** (crop/unwarp/key commands), **fonts**, **tokens**,
 **cue sheet** summary (mood, bpm, chord changes with times).
 
+### 9.3 Storyboard proposal (what the user reviews)
+
+Present the plan as a proposal, not a listing:
+
+> This film tells **NRIs abroad** that **they can invest in India's private markets from anywhere**.
+
+| # | beat · time | on screen | why (traced to the message) |
+|---|---|---|---|
+| 01 | hook · 0–3 s | "you moved to the US." → "your investments don't need to." on black | names the tension in the viewer's words |
+| 02 | reveal · 3–7 s | laptop rises into cream studio, hero page glowing | the promise arrives as an object |
+| … | | | |
+
+Footer: rhythm line · palette · type · duration · audio. Then ask (collaborative) *"approve, or
+which frames change?"* — revise only the frames named. Autonomous: post it and continue.
+
+**Sketch sheet (optional, recommended for > 4 scenes):** after ENGINE builds the static layout
+(ENGINE §3 step 4), run `render.mjs --at scenes` and show `contact-sheet.png` as the storyboard:
+real fonts, colours, copy and placement, no motion yet. A confirmed sheet locks the layout; the
+build dresses it and must not redraw it. If the user wanted only a storyboard, stop here.
+
+### 9.4 Hand-off summary
+Before building, one message: the locked brief in brief form, with **what the user stated** and
+**what you inferred or defaulted** as two separate lists (with reasons). Corrections to it are not
+approval — fold them in and show it again.
+
 ---
 
 ## 10. Brief quality gate (all must be YES)
@@ -408,6 +603,13 @@ Also list at the end: **assets to prepare** (crop/unwarp/key commands), **fonts*
 - [ ] Finish-by time and end hold are stated; audio ending lands on the logo.
 - [ ] Constraints list includes the user's must-nots verbatim.
 - [ ] If VO: every phrase has a film time; total fits (or the chosen fix is stated).
+- [ ] Message sentence written; every beat's "why" traces to it; value lands by beat 2.
+- [ ] Every beat has concept · depth layers · a verb per element · transition out + SFX; rhythm declared.
+- [ ] Enrichment added (atmosphere, ambient motion, object-level transitions) and no new copy/claims.
+- [ ] Reference videos: Shot Log + Style DNA written; only grammar borrowed, no content copied.
+- [ ] **Integration check:** read all decisions together for a consequence no single one shows
+      (9:16 + a dense dashboard = unreadable on a phone; 15 s + 6 beats = noise; a light palette +
+      thin serif at 40 px = low contrast) and fix it now.
 
 ---
 
@@ -456,3 +658,19 @@ coffee, on your schedule." · proofs: roasted this week · skip anytime · deliv
   (10–19) → wobble-free trust line "skip anytime." (19–23) → blob wipe to crema → logo + "brew it
   forward." + "get brewly" (23–30, reveals done by 28.5).
 Then the full Production Brief (§9.1) and Build Sheet (§9.2).
+
+### 12.3 From a reference video (path E + C)
+"Make the launch of Kosh (our budgeting app) feel like this reference" + app screenshots + logo.
+→ `analyze_video.py ref.mp4` → 14 shots, avg 2.1 s, cuts on beat 71 %, ~118 bpm, white void,
+  black type, one device per shot, hard cuts + 2 zoom-throughs.
+→ Style DNA: kinetic modern on a white void; hard cuts on the beat; huge centred sans; one device
+  per shot rotating in; a single colour accent per shot.
+→ Transfer: keep 14-beat structure scaled to 30 s (≈ 2.1 s beats), cut on the synth's beat grid
+  (bpm 118), white void + the app's own accent (#2F6BFF) instead of theirs, Manrope 800 instead of
+  their typeface, our phone rig with the user's screenshots. Nothing of theirs appears on screen.
+→ Brief states "structure and rhythm borrowed from the reference; all content is Kosh's".
+
+### 12.4 How a model should read these examples
+Copy the *decisions pattern*, not the words: every choice has a reason tied to the product truth,
+the message sentence or a reference's Style DNA. When you finish a brief, you should be able to
+point at any frame and say which of those three it came from.

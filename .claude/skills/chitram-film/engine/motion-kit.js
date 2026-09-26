@@ -372,6 +372,83 @@
     return t + d * 0.5;
   };
 
+  /**
+   * Scene-to-scene transition between two full-frame scene containers.
+   *   swap = MK.transition(tl, t, { type, from: "#s1", to: "#s2", dur, dir, color, layer: "#fx" })
+   * type: cut | crossfade | blur | zoom | push | whipPan | iris | blinds | shutter | dip
+   * Velocity-matched: the outgoing side accelerates (…in), the incoming side decelerates (…out),
+   * so the fastest moments meet at the swap. Scene containers must span the transition window
+   * (their data-in <= t and data-out >= t + dur). Returns the swap time (midpoint).
+   */
+  MK.transition = function (tl, t, o = {}) {
+    const A = q(o.from), B = q(o.to);
+    if (!A || !B) throw new Error("MK.transition: from/to not found");
+    const W = Film.cfg.width, H = Film.cfg.height;
+    const type = o.type || "crossfade";
+    const d = o.dur ?? ({ cut: 0, crossfade: 0.6, blur: 0.5, zoom: 0.55, push: 0.7, whipPan: 0.45, iris: 0.7, blinds: 0.8, shutter: 0.6, dip: 0.8 }[type] ?? 0.6);
+    const mid = t + d / 2;
+    const dir = o.dir || "left";
+    const vx = dir === "left" ? -1 : dir === "right" ? 1 : 0, vy = dir === "up" ? -1 : dir === "down" ? 1 : 0;
+    const coverLayer = () => need(q(o.layer || "#fx"), "transition(layer)");
+    tl.set(B, { opacity: 0 }, 0);
+    switch (type) {
+      case "cut":
+        tl.set(A, { opacity: 0 }, t); tl.set(B, { opacity: 1 }, t); return t;
+      case "crossfade":
+        tl.to(A, { opacity: 0, duration: d, ease: "power1.inOut" }, t);
+        tl.to(B, { opacity: 1, duration: d, ease: "power1.inOut" }, t);
+        return mid;
+      case "blur":
+        tl.to(A, { opacity: 0, filter: "blur(20px)", duration: d * 0.6, ease: "power2.in" }, t);
+        tl.fromTo(B, { opacity: 0, filter: "blur(20px)" }, { opacity: 1, filter: "blur(0px)", duration: d * 0.7, ease: "power3.out", immediateRender: false }, t + d * 0.3);
+        return mid;
+      case "zoom":
+        tl.to(A, { scale: 1.2, opacity: 0, filter: "blur(18px)", duration: d * 0.4, ease: "power3.in" }, t);
+        tl.fromTo(B, { scale: 0.78, opacity: 0, filter: "blur(18px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: d * 0.8, ease: "expo.out", immediateRender: false }, t + d * 0.3);
+        return t + d * 0.35;
+      case "push":
+        tl.to(A, { x: vx * W, y: vy * H, duration: d, ease: "power3.inOut" }, t);
+        tl.fromTo(B, { x: -vx * W, y: -vy * H, opacity: 1 }, { x: 0, y: 0, duration: d, ease: "power3.inOut", immediateRender: false }, t);
+        tl.set(B, { opacity: 1 }, t);
+        return mid;
+      case "whipPan":
+        tl.to(A, { x: vx * 420 || -420, filter: "blur(24px)", opacity: 0, duration: d * 0.5, ease: "power3.in" }, t);
+        tl.fromTo(B, { x: -(vx * 420 || -420), filter: "blur(24px)", opacity: 0 }, { x: 0, filter: "blur(0px)", opacity: 1, duration: d * 0.5, ease: "power3.out", immediateRender: false }, mid);
+        return mid;
+      case "iris": {
+        const at = o.at || "50% 50%";
+        tl.set(B, { opacity: 1, clipPath: `circle(0% at ${at})` }, t);
+        tl.to(B, { clipPath: `circle(80% at ${at})`, duration: d, ease: "power2.inOut" }, t);
+        tl.set(A, { opacity: 0 }, t + d);
+        tl.set(B, { clipPath: "none" }, t + d);
+        return mid;
+      }
+      case "blinds": case "shutter": {
+        const L = coverLayer(); const n = type === "blinds" ? (o.strips || 8) : 2;
+        const strips = [];
+        for (let i = 0; i < n; i++) {
+          const s = document.createElement("div");
+          s.style.cssText = `position:absolute;left:0;width:${W}px;top:${(H / n) * i}px;height:${H / n + 1}px;background:${o.color || "#0B0B0E"};transform-origin:${type === "shutter" ? (i ? "50% 100%" : "50% 0%") : "50% 0%"}`;
+          L.appendChild(s); strips.push(s);
+        }
+        const close = d * 0.45, st = type === "blinds" ? 0.035 : 0;
+        strips.forEach((s, i) => {
+          tl.fromTo(s, { scaleY: 0 }, { scaleY: 1, duration: close, ease: "power3.in" }, t + i * st);
+          tl.set(s, { transformOrigin: type === "shutter" ? (i ? "50% 0%" : "50% 100%") : "50% 100%" }, mid + n * st);
+          tl.to(s, { scaleY: 0, duration: close, ease: "power3.out" }, mid + n * st + 0.02 + i * st);
+        });
+        tl.set(A, { opacity: 0 }, mid + n * st); tl.set(B, { opacity: 1 }, mid + n * st);
+        return mid + n * st;
+      }
+      case "dip": {
+        const cover = MK.fadeThrough(tl, t, { layer: o.layer || "#fx", color: o.color || "#000", dur: d });
+        tl.set(A, { opacity: 0 }, cover); tl.set(B, { opacity: 1 }, cover);
+        return cover;
+      }
+      default: throw new Error("MK.transition: unknown type " + type);
+    }
+  };
+
   /** Horizontal blur-mask wipe-out of a line (text smears sideways and clears). */
   MK.blurWipeOut = function (tl, target, t, o = {}) {
     const el = need(q(target), "blurWipeOut");

@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="UTF-8"><title>transitions</title>
+<link rel="stylesheet" href="engine/fonts.css"><link rel="stylesheet" href="engine/kit.css"><script src="engine/vendor/gsap.min.js"></script></head><body>
+<div id="film" data-film data-duration="18" data-fps="30" data-width="1920" data-height="1080">
+<div class="layer center" id="sc0" style="background:#0B1F1C"><div class="t" id="tx0" style="position:relative;font:800 110px Manrope;color:#fff">start</div></div>
+<div class="layer center" id="sc1" style="background:#F4EFE3"><div class="t" id="tx1" style="position:relative;font:800 110px Manrope;color:#111">crossfade in</div></div>
+<div class="layer center" id="sc2" style="background:#1B2A5E"><div class="t" id="tx2" style="position:relative;font:800 110px Manrope;color:#fff">blur in</div></div>
+<div class="layer center" id="sc3" style="background:#E3B34A"><div class="t" id="tx3" style="position:relative;font:800 110px Manrope;color:#111">zoom in</div></div>
+<div class="layer center" id="sc4" style="background:#7B6CF6"><div class="t" id="tx4" style="position:relative;font:800 110px Manrope;color:#fff">push in</div></div>
+<div class="layer center" id="sc5" style="background:#F7F1EC"><div class="t" id="tx5" style="position:relative;font:800 110px Manrope;color:#111">whipPan in</div></div>
+<div class="layer center" id="sc6" style="background:#12372F"><div class="t" id="tx6" style="position:relative;font:800 110px Manrope;color:#fff">iris in</div></div>
+<div class="layer center" id="sc7" style="background:#C7F36B"><div class="t" id="tx7" style="position:relative;font:800 110px Manrope;color:#111">blinds in</div></div>
+<div class="layer center" id="sc8" style="background:#0B0B0E"><div class="t" id="tx8" style="position:relative;font:800 110px Manrope;color:#fff">shutter in</div></div>
+<div class="layer center" id="sc9" style="background:#CDB3AA"><div class="t" id="tx9" style="position:relative;font:800 110px Manrope;color:#111">dip in</div></div>
+<div class="layer center" id="sc10" style="background:#2B1B14"><div class="t" id="tx10" style="position:relative;font:800 110px Manrope;color:#fff">cut in</div></div>
+<div id="fx" class="layer"></div></div>
+<script src="engine/runtime.js"></script><script src="engine/motion-kit.js"></script>
+<script>
+Film.build((tl) => {
+  tl.set("#tx0", {opacity:1}, 0);
+  tl.set("#tx1", {opacity:1}, 0);
+  tl.set("#tx2", {opacity:1}, 0);
+  tl.set("#tx3", {opacity:1}, 0);
+  tl.set("#tx4", {opacity:1}, 0);
+  tl.set("#tx5", {opacity:1}, 0);
+  tl.set("#tx6", {opacity:1}, 0);
+  tl.set("#tx7", {opacity:1}, 0);
+  tl.set("#tx8", {opacity:1}, 0);
+  tl.set("#tx9", {opacity:1}, 0);
+  tl.set("#tx10", {opacity:1}, 0);
+  MK.transition(tl, 1.20, { type: "crossfade", from: "#sc0", to: "#sc1", color: "#E3B34A" });
+  MK.transition(tl, 2.80, { type: "blur", from: "#sc1", to: "#sc2", color: "#E3B34A" });
+  MK.transition(tl, 4.40, { type: "zoom", from: "#sc2", to: "#sc3", color: "#E3B34A" });
+  MK.transition(tl, 6.00, { type: "push", from: "#sc3", to: "#sc4", color: "#E3B34A" });
+  MK.transition(tl, 7.60, { type: "whipPan", from: "#sc4", to: "#sc5", color: "#E3B34A" });
+  MK.transition(tl, 9.20, { type: "iris", from: "#sc5", to: "#sc6", color: "#E3B34A" });
+  MK.transition(tl, 10.80, { type: "blinds", from: "#sc6", to: "#sc7", color: "#E3B34A" });
+  MK.transition(tl, 12.40, { type: "shutter", from: "#sc7", to: "#sc8", color: "#E3B34A" });
+  MK.transition(tl, 14.00, { type: "dip", from: "#sc8", to: "#sc9", color: "#E3B34A" });
+  MK.transition(tl, 15.60, { type: "cut", from: "#sc9", to: "#sc10", color: "#E3B34A" });
+});
+</script></body></html>

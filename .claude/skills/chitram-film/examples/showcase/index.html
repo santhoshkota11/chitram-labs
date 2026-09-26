@@ -103,7 +103,7 @@ Film.build((tl) => {
 
   /* S4 10:0–13:2  whip to cream laptop */
   const swap = MK.whip(tl, 9.75, { layer: "#fx", colors: ["#C7F36B", "#10B981", "#F4EFE3"] });
-  tl.set("#bgCream", { opacity: 1 }, swap);
+  tl.fromTo("#bgCream", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power1.inOut" }, swap - 0.25);
   tl.set("#wall", { opacity: 1 }, swap);
   const rows = MK.typeWall("#wall", "every word", { rows: 7, font: "800 150px Manrope", color: "rgba(18,55,47,.06)" });
   MK.wallScroll(tl, rows, swap, 13.2);

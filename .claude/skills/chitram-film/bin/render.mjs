@@ -4,6 +4,8 @@
 //   node bin/render.mjs <project> [--out film.mp4] [--fps 30] [--crf 17] [--workers 4]
 //                        [--from 0] [--to 12] [--draft] [--audio path.wav] [--no-audio]
 //   node bin/render.mjs <project> --at 1.5,4,9.2 [--sheet]      (PNG snapshots + contact sheet)
+//   node bin/render.mjs <project> --at scenes                   (storyboard sheet: every scene midpoint)
+//   node bin/render.mjs <project> --at every:2                  (a frame every 2 s)
 //
 // --draft = half resolution, 15 fps, fast preset (for review only).
 import fs from "node:fs";
@@ -21,10 +23,26 @@ function run(cmd, a) {
   if (r.status !== 0) throw new Error(`${cmd} failed: ${r.stderr.toString().slice(-2000)}`);
 }
 
-async function snapshots(times) {
+async function snapshots(spec) {
   const { server, port } = await serve(dir);
   const browser = await launch();
   const { page, cfg, logs } = await openFilm(browser, port, entry);
+  let times;
+  if (spec === "scenes" || spec === "auto") {
+    // storyboard sheet: midpoint of every scene container ([data-in]/[data-out]) + first and last frame
+    times = await page.evaluate((D) => {
+      const ts = new Set([0.4, Math.max(0, D - 0.2)]);
+      document.querySelectorAll("[data-in],[data-out],[data-scene]").forEach((el) => {
+        const a = el.dataset.in != null ? +el.dataset.in : 0, b = el.dataset.out != null ? +el.dataset.out : D;
+        ts.add(+(((a + b) / 2)).toFixed(2));
+      });
+      return [...ts].sort((x, y) => x - y);
+    }, cfg.duration);
+    if (times.length < 4) times = Array.from({ length: 9 }, (_, i) => +((cfg.duration * (i + 0.5)) / 9).toFixed(2));
+  } else if (String(spec).startsWith("every:")) {
+    const st = parseFloat(String(spec).slice(6));
+    times = []; for (let t = st / 2; t < cfg.duration; t += st) times.push(+t.toFixed(2));
+  } else times = String(spec).split(",").map(Number);
   const outDir = path.join(dir, "snapshots");
   fs.mkdirSync(outDir, { recursive: true });
   const files = [];
@@ -129,7 +147,7 @@ async function renderVideo() {
 
 (async () => {
   try {
-    if (args.at) await snapshots(String(args.at).split(",").map(Number));
+    if (args.at) await snapshots(String(args.at));
     else await renderVideo();
   } catch (e) { console.error("\nRENDER FAILED: " + (e.stack || e)); process.exit(1); }
 })();

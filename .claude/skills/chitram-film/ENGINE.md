@@ -96,12 +96,24 @@ Positioning: layers are `position:absolute; inset:0` (`.layer`). Text uses `.t` 
    camera/device moves and CUSTOM effects.
 6. **Audio:** write `cues.json` from the Build Sheet's sfx column (§10). Run `synth.py`.
 7. `check.mjs` → fix every ERROR and every warning that is a real problem (§11.2).
-8. **Snapshots** at: the midpoint of every scene's hold, the midpoint of every transition, and
-   `duration − 0.2`. Read the contact sheet. Fix what fails the visual checklist (§11.3). Repeat
+8. **Snapshots**: `render.mjs <film> --at scenes` (storyboard sheet: every scene midpoint + ends),
+   plus explicit times for every transition midpoint. Read the contact sheet. Fix what fails the visual checklist (§11.3). Repeat
    6–8 until clean.
 9. **Draft render** (optional for ≤ 20 s films): watch timing/rhythm.
 10. **Final render.** Verify with ffprobe (duration, 1920×1080, audio stream) and look at a 6-frame
     strip (§12). Deliver the MP4 path.
+
+### 3.1 Production stages are dependencies, not a queue
+```
+assets ─┐
+audio  ─┼─→ (VO? duration sync: captions follow real phrase times) ─→ transitions ─→ verify ─→ final look ─→ render
+layout ─┘        (static layout → storyboard sheet → animate scene by scene)
+```
+Independent work runs in parallel: synthesize the score (`synth.py`) and prepare images while you
+write the layout. Inside a chain, order is fixed: never animate before the static layout passes
+its snapshot; never time captions to a VO you haven't measured; never render before `check.mjs`.
+Batch visual checks: one contact sheet beats many single-frame looks (each image you read costs
+context).
 
 ---
 
@@ -139,7 +151,12 @@ target before `t` automatically.
 ### Transitions (return the swap time — change scene content at that time)
 `swap = MK.whip(tl, t, {layer:'#fx', stage:'#stage', colors, count=9, dur=.8, dir, wash=true})` ·
 `cover = MK.blobWipe(tl, t, {layer:'#fx', color, dur=1, from:'right', exit=true})` ·
-`cover = MK.fadeThrough(tl, t, {layer:'#fx', color:'#000', dur=.8, hold})`.
+`cover = MK.fadeThrough(tl, t, {layer:'#fx', color:'#000', dur=.8, hold})` ·
+`swap = MK.transition(tl, t, {type, from:'#s1', to:'#s2', dur, dir:'left'|'right'|'up'|'down', color, at, layer:'#fx'})`
+— scene-to-scene handoff between two full-frame scene containers; types `cut` · `crossfade` ·
+`blur` · `zoom` · `push` · `whipPan` · `iris` · `blinds` · `shutter` · `dip` (velocity-matched:
+the outgoing side accelerates out, the incoming side decelerates in, fastest at the swap). Both
+scenes' `data-in/out` must cover the transition window. Tested in `examples/transitions/`.
 
 ### Ambience & motion
 `els = MK.bokeh(layer, {count=6, colors, size:[260,520], seed, edges=true})` + `MK.drift(tl, els, start, end, {amp=40, period=6})` ·
@@ -203,6 +220,51 @@ The "camera" is the transform of a container: 2D (`x, y, scale` on a scene layer
 - Text block width 30–50 % of the frame; top/left safe margin ≥ 4 % (check.mjs enforces).
 - Scale contrast: headline ≥ 2.5× caption size.
 - Colour contrast: text vs background ≥ 4.5:1 for captions; accent words may be lower if large.
+
+### 5.6 Professional-editor guardrails (the tells of amateur motion)
+- **Vary eases** — no more than two independent tweens with the same ease in one scene. The ease
+  is the adverb: `expo.out` = confident, `sine.inOut` = dreamy, `back.out` = playful.
+- **Direction rule:** `.out` for entrances, `.in` for exits, `.inOut` for moves between positions.
+  (Ease-in entrances feel sluggish; ease-out exits feel reluctant.)
+- **Vary speed deliberately** — the slowest move in the film is ≥ 3× the fastest. Weight: 0.15–0.3 s
+  urgent · 0.3–0.5 s professional · 0.5–0.8 s luxury · 0.8–2 s cinematic.
+- **Vary entry direction** — not everything from `y: 20, opacity: 0`: from the side, from scale,
+  from blur, from a mask, opacity only, letter-spacing.
+- **Each scene has its own stagger rhythm** and its own ambient motion (drift, slow rotation,
+  scale push, colour shift, or deliberate stillness). Stillness after motion is powerful.
+- **Don't start at t = 0.** The first move starts 0.1–0.3 s in.
+- **Build · breathe · resolve** inside every scene: elements enter in the first ~30 %, the middle
+  ~40 % holds with one ambient motion, the last ~30 % resolves or exits (exits faster than entries).
+- **Choreography is hierarchy:** the first thing to move is read as most important — stagger by
+  importance, not DOM order; overlap entries; decorative group staggers total < 0.5 s.
+- **Asymmetry:** entrances longer than exits (a card appears in 0.5 s, leaves in 0.3 s).
+- **One transform owner per element at a time.** An entrance `y` and a Ken-Burns `scale` on the
+  same element at once kill each other — combine them in one `fromTo`, or put the entrance on a
+  wrapper and the drift on the child.
+- **Ambient loops live on the timeline** (`MK.drift/hover/breathe`, finite repeats) — a bare
+  `gsap.to` outside `tl` never renders.
+- **Match velocity across cuts:** exit with an accelerating ease + blur ramp, enter with a
+  decelerating ease + blur clear, so the fastest moments meet at the swap.
+
+### 5.7 Video is not a web page
+- **Scale up:** headlines 64–130 px, body 28–42 px, labels ≥ 20 px at 1080p (in-feed/phone
+  viewing: headlines ≥ 90, body ≥ 32). Borders 2–4 px, decorative opacity 12–25 % (under 10 % is
+  invisible after compression), padding 60–140 px.
+- **Layers:** a produced frame has a background treatment, midground content and foreground
+  accents. Premium/minimal briefs deliberately keep space — "breathing room" is then the design,
+  but the background is still *treated* (gradient void, glow, soft shadow), never flat `#000`/`#fff`.
+- **Two focal points** where the brief allows (hero + caption), anchored to edges or thirds, not a
+  lone centred block — except deliberate solemn moments (hook line, end card).
+- **Colour presence:** at least one colour that pulls the eye per scene; tint neutrals toward the
+  brand hue; brand accent at full saturation on focal elements.
+- **Banding:** large full-frame linear gradients on dark backgrounds band under H.264. Prefer radial
+  gradients / solid + glow, or add a static 2 % noise overlay (a small tiled PNG) to dither.
+- **Images always move:** perspective tilt, slow push (scale 1 → 1.04 over the beat), device frame,
+  or a floating extract at another depth. A raw flat image looks unfinished.
+- **Every line or connector earns its place:** it starts at a real element, ends at one, and
+  reveals/routes/emphasises something. Otherwise cut it.
+- **AI design tells to avoid unless the brief asks:** gradient text everywhere, identical card
+  grids, cyan-on-dark neon, everything centred with equal weight, the same font everyone uses.
 
 ---
 
@@ -368,6 +430,24 @@ lifted or animated must be real DOM.
 
 ---
 
+### 6.14 Scene shapes (proven whole-scene patterns — pick one per beat)
+| Shape | What happens | Build with |
+|---|---|---|
+| **Kinetic type beats** | the words *are* the motion: a line swaps words in place, or a statement builds line by line to a pop payoff | `blockWipe`/`maskRise`/`popIn`, hard cuts on the beat |
+| **Typewriter reveal** | a caret types (and edits) a line, then it collapses into the brand | `typewriter` + `blurOut` + logo lockup |
+| **Device showcase** | one device held as hero while its screens change through a real flow | `laptop`/`phone` rig + screen wipes + `lift` |
+| **Camera journey** | the camera travels through one continuous world: dive in → something happens → travel to the consequence | rig/stage tweens (push, orbit, pan) with `power2.inOut` legs |
+| **Zoom-out reveal** | open tight on a detail, one long decelerating pull-back reveals the whole | stage `scale` 3 → 1, `expo.out`, 2.5–4 s |
+| **Grid / list assemble** | N items cascade into a grid or list and hold | stagger `fromTo` (0.06–0.1 s), `glass` cards |
+| **Constellation / hub** | nodes spring into a ring around a centre, the camera pushes in on the core | `arcText`/positioned nodes + `popIn` + stage push |
+| **Comparison split** | two equal items enter from opposite sides with mirrored tilts, badges pop | mirrored `fromTo` rotationY ±18 + `popIn` |
+| **Fixed anchor, cycling** | one element never moves while the words/themes around it cycle | pinned element + `karaoke`/hard-cut swaps |
+| **Takeover** | a cycling word is shoved aside by the hero crashing in | `x` crash with `power4.out` + displaced text `x` |
+| **Prompt → answer** | a prompt types into an input, the product answers | `typewriter` + streaming lines (`fadeIn` stagger) |
+| **Data hero** | one real number/chart carries the beat | `lineDraw` chart / count only with real data |
+| **Title card** | one line or card, one restrained move, then stillness | `blurIn` or `maskRise`, hold |
+| **Logo lockup** | the mark comes to exist: assembles, draws on, or blooms, then holds | recipe 6.5 (+ `lineDraw` outline, `breathe`) |
+
 ## 7. Editing knowledge
 
 - **Continuous vs cut.** Premium films avoid hard cuts: connect scenes by moving *through*
@@ -376,6 +456,12 @@ lifted or animated must be real DOM.
 - **Match cut:** end a scene on a shape/position, start the next with a similar shape in the same
   place (rosette → bullet, pill → ring, screen → full frame).
 - **Transition inventory per film:** 2–4 kinds, repeated. Using every transition once looks cheap.
+- **Transitions carry meaning:** crossfade = "this continues" · hard cut = "wake up", disruption,
+  register shift · slow dissolve = "drift with me" · push/whip = travel · iris/zoom = focus on one
+  thing. Spend the biggest transition on the centrepiece (the hero reveal, the logo); connective
+  beats get quiet ones. A 5–7 beat brand film wants 1–2 showpiece transitions, not more.
+- **Declare the rhythm** before building (e.g. `fast-fast-SLOW-fast-WHIP-hold`) and check the
+  draft against it.
 - **Pacing curve:** calm hook → energy rises through the proof beats → one peak (whip / biggest
   move) around 50–65 % → slows into trust → still end card.
 - **Beat grid:** with a pulse, place reveals on beats (`t = start + n × 60/bpm`). Transitions start
@@ -426,6 +512,7 @@ python3 $SKILL/tools/prep_image.py crop   ref.png assets/hero.png 327 127 1130 5
 python3 $SKILL/tools/prep_image.py unwarp ref.png assets/scr.png 292,90 948,112 1022,540 330,555 --size 1600x940
 python3 $SKILL/tools/prep_image.py key    logo.png assets/logo.png --bg auto --tol 60
 python3 $SKILL/tools/prep_image.py palette ref.png --n 6
+python3 $SKILL/tools/analyze_video.py ref.mp4 --out refs/ref_analysis   # watch a reference video (DIRECTOR §1.5)
 FPS=30 $SKILL/tools/prep_video.sh footage.mp4 assets/clip          # image sequence
 ```
 - Always `Read` (view) a prepared image once before using it.
@@ -456,6 +543,22 @@ Math.random / clocks / repeat:-1 / play() / fetch → replace with kit equivalen
 download to assets. Missing file / script error → fix path or code. No `Film.build` / no
 `data-duration` → fix the root.
 
+### 11.1b What check.mjs measures (so you know what "clean" means)
+Static: determinism bans, external URLs, CSS animations/transitions, fonts without faces.
+Runtime (every 0.2 s): script errors, missing files, timeline length, every `.t` text box —
+outside the 4 % safe area, overlapping another text, overlapping a **protected element**
+(`data-clear`), and too short to read. Pixel pass: each caption's **contrast** against what is
+actually behind it (text hidden, background measured), **busy backgrounds** (texture behind text),
+**near-empty frames** (≥ 1 s of flat colour mid-film) and **harsh flashes** (≥ 75 % of the frame
+brightening > 20 % within 0.1 s). `--fast` skips the pixel pass; `--strict` fails on warnings.
+
+**Mark what text must never cover** with `data-clear="name"`: device screens being showcased,
+the logo, faces in footage, the product photo. Example: `<div class="mk-screen" data-clear="screen">`
+or on a kit element after building: `lap.screen.dataset.clear = "screen"`.
+
+**Definition of done:** `check.mjs --strict` passes, or every remaining warning is listed in the
+delivery note with the reason it is intentional.
+
 ### 11.2 Warnings → judge
 - *outside safe area* → move text in (unless it's intentionally full-bleed decoration; then drop
   its `t` class).
@@ -463,6 +566,11 @@ download to assets. Missing file / script error → fix path or code. No `Film.b
 - *readable for only Xs* → lengthen the hold, shorten the copy, or reveal faster.
 - *timeline runs past the end* → shorten the last tweens (an ambient loop is fine).
 - *font has no @font-face* → add the face or switch to a bundled font.
+- *low contrast* → darker/lighter text, a scrim behind it, or move it to a calmer area.
+- *busy background* → blur/darken the region behind (DOF copy, recipe 6.1), a soft scrim, or move.
+- *overlaps protected element* → move the text beside the element; never over a showcased screen.
+- *near-empty frame* → something should be moving or visible; tighten the gap or fill it.
+- *harsh brightness jump* → ease background changes over ≥ 0.4 s or cover them with a wipe.
 
 ### 11.3 Visual checklist (on the contact sheet)
 - [ ] Every headline complete, spelled right, not clipped, not over busy content.
@@ -485,6 +593,9 @@ download to assets. Missing file / script error → fix path or code. No `Film.b
 | Captions from two scenes overlap | missing exit or `data-out` | every caption gets an exit; scene layers get `data-in/out` |
 | Fonts look like Times/Arial | font not loaded | bundled font or local @font-face; check warns |
 | Footage frozen/black | H.264 `<video>` in Chromium | `prep_video.sh` → image sequence or webm |
+| Element never appears / sits off-screen | entrance tween and another transform tween on the same element overlap | one `fromTo` for both, or wrapper (entrance) + child (drift) |
+| Ambient glow/float missing in render | loop created with bare `gsap.to` outside `tl` | put it on `tl` (`MK.breathe/drift/hover`) |
+| Dark→light scene change reads as a flash | background opacity switched with `tl.set` | fade it over ≥ 0.4 s or hide the switch under a wipe/whip |
 | Render slower than expected | heavy `filter: blur()` on big layers every frame | blur smaller elements, use pre-blurred images, lower `--workers` if RAM-bound |
 
 ---
@@ -502,6 +613,19 @@ Deliver: the MP4 path, duration, resolution, and a one-paragraph summary of what
 plus any deviations from the brief (and why).
 
 ---
+
+## 12.5 Review loop (where the user sees the work)
+
+| Pass | Collaborative | Autonomous |
+|---|---|---|
+| Concept (DIRECTOR L2) | show 5 pitches, wait | pick, state choice + the typical one left behind |
+| Storyboard (DIRECTOR L4) | frame table, wait; optional sketch sheet (`--at scenes` on the static layout), wait | post both, continue |
+| Build | revise only the frames named in feedback | — |
+| Final look | show contact sheet (+ draft MP4), ask "render, or what changes?" | show contact sheet with the delivery |
+
+Render is the expensive, final step: in collaborative runs render only after the final-look
+answer. Every delivery reports the real duration, resolution, the contact sheet and any
+deviations from the brief.
 
 ## 13. Cost-aware mode (smaller / cheaper models — same quality bar)
 
