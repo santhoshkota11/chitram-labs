@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>AASTHI — Invest in India from anywhere</title>
+<link rel="stylesheet" href="engine/fonts.css" />
+<script src="engine/vendor/gsap.min.js"></script>
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#0B0B0E}
+#root{position:relative;overflow:hidden;font-family:"Inter",sans-serif;background:#F7F1EC}
+.layer{position:absolute;inset:0;pointer-events:none}
+
+/* ---------- backgrounds ---------- */
+#bgCream{background:
+  radial-gradient(120% 80% at 30% 18%, #FBF7F3 0%, rgba(251,247,243,0) 60%),
+  linear-gradient(180deg,#F7F1EC 0%,#F4ECE6 48%,#E6D3CB 78%,#CDB3AA 100%);}
+#bgDark{background:
+  radial-gradient(50% 55% at 50% 50%, rgba(123,108,246,.22) 0%, rgba(46,36,150,.10) 38%, rgba(11,11,14,0) 70%),
+  linear-gradient(180deg,#101015 0%,#0B0B0E 55%,#070709 100%);}
+.bokeh{position:absolute;border-radius:50%;}
+.bk-g{background:radial-gradient(circle,rgba(227,179,74,.55) 0%,rgba(227,179,74,.18) 45%,rgba(227,179,74,0) 70%)}
+.bk-v{background:radial-gradient(circle,rgba(123,108,246,.50) 0%,rgba(123,108,246,.16) 45%,rgba(123,108,246,0) 70%)}
+
+/* ---------- 3D stage / laptop ---------- */
+#stage{perspective:2300px;perspective-origin:50% 56%}
+#rig,#bob{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
+#floor{position:absolute;left:-1000px;top:0;width:2000px;height:1500px;transform-origin:50% 0;
+  transform:translate3d(0,190px,-300px) rotateX(90deg);
+  background:radial-gradient(38% 30% at 50% 48%,rgba(112,72,62,.50) 0%,rgba(130,88,76,.26) 40%,rgba(150,105,92,.08) 70%,rgba(150,105,92,0) 100%)}
+#lid{position:absolute;left:-595px;top:-720px;width:1190px;height:720px;transform-origin:50% 100%;transform:rotateX(9deg);transform-style:preserve-3d}
+#lidBack{position:absolute;inset:0;border-radius:30px;transform:translateZ(-3px) rotateY(180deg);backface-visibility:hidden;
+  background:linear-gradient(135deg,#e9eaee 0%,#c4c6cc 50%,#dcdde2 100%)}
+#rim{position:absolute;inset:0;border-radius:30px;background:linear-gradient(160deg,#f1f2f5 0%,#b9bcc3 35%,#8d9098 60%,#d7d9de 100%);
+  box-shadow:0 0 0 1px rgba(0,0,0,.18)}
+#bezel{position:absolute;inset:3px;border-radius:27px;background:#050506}
+#cam{position:absolute;left:50%;top:8px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:#1d1f26;box-shadow:0 0 0 1px #2a2c33}
+#screen{position:absolute;left:20px;top:20px;width:1150px;height:672px;overflow:hidden;border-radius:6px;background:#0B0B0E}
+.scr{position:absolute;inset:0}
+.scr img{display:block;width:100%;height:100%}
+#heroBlur{filter:blur(9px) brightness(.6);
+  -webkit-mask-image:radial-gradient(28% 44% at 75% 59%, rgba(0,0,0,0) 45%, #000 100%);mask-image:radial-gradient(28% 44% at 75% 59%, rgba(0,0,0,0) 45%, #000 100%)}
+#gloss{position:absolute;left:20px;top:20px;width:1150px;height:672px;overflow:hidden;border-radius:6px}
+#glossBar{position:absolute;top:-200px;left:0;width:420px;height:1100px;
+  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.10) 45%,rgba(255,255,255,.16) 50%,rgba(255,255,255,.10) 55%,rgba(255,255,255,0) 100%)}
+#glassSheen{position:absolute;left:20px;top:20px;width:1150px;height:672px;border-radius:6px;
+  background:linear-gradient(125deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,0) 32%,rgba(255,255,255,0) 100%)}
+#lifts{position:absolute;left:20px;top:20px;width:1150px;height:672px;transform-style:preserve-3d}
+
+#base{position:absolute;left:-655px;top:0;width:1310px;height:760px;transform-origin:50% 0;transform:rotateX(90deg);transform-style:preserve-3d;
+  border-radius:0 0 34px 34px;
+  background:linear-gradient(180deg,#b9bbc1 0%,#d4d6db 8%,#dcdee2 40%,#cfd1d6 100%)}
+#kbWell{position:absolute;left:125px;top:46px;width:1060px;height:370px;border-radius:12px;background:#9fa2a9;box-shadow:inset 0 2px 6px rgba(0,0,0,.25);padding:10px;display:flex;flex-direction:column;gap:8px}
+.kr{display:flex;gap:8px;flex:1}
+.k{flex:1;border-radius:7px;background:linear-gradient(180deg,#26272c,#141518);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 1px 1px rgba(0,0,0,.4)}
+.spk{position:absolute;top:46px;width:92px;height:370px;border-radius:8px;
+  background-image:radial-gradient(circle,#8c8f96 1.4px,rgba(0,0,0,0) 1.8px);background-size:9px 9px;opacity:.8}
+#pad{position:absolute;left:355px;top:440px;width:600px;height:292px;border-radius:18px;background:linear-gradient(180deg,#cfd1d6,#c5c7cc);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.12),inset 0 2px 3px rgba(255,255,255,.4)}
+#front{position:absolute;left:0;top:760px;width:1310px;height:22px;transform-origin:50% 0;transform:rotateX(-90deg);
+  border-radius:0 0 12px 12px;background:linear-gradient(180deg,#e6e7ea 0%,#a4a7ae 60%,#7f828a 100%)}
+#notch{position:absolute;left:545px;top:0;width:220px;height:9px;border-radius:0 0 10px 10px;background:linear-gradient(180deg,#9a9da4,#c3c5ca)}
+.side{position:absolute;top:0;width:22px;height:760px;background:linear-gradient(90deg,#8e9199,#c9cbd0)}
+#sideL{left:0;transform-origin:0 50%;transform:rotateY(90deg)}
+#sideR{right:0;transform-origin:100% 50%;transform:rotateY(-90deg)}
+
+/* ---------- website screens (locked to reference copy) ---------- */
+.scr img.nav{position:absolute;left:0;top:0;width:1150px;height:63px}
+#scrHIW{background:#F4F5F7;clip-path:inset(0 0 0 100%)}
+.hiwPill{position:absolute;left:468px;top:15px;width:100px;height:33px;border-radius:8px;background:rgba(20,30,60,.06)}
+.step{position:absolute;left:150px;width:850px;height:118px;border-radius:16px;background:#fff;
+  box-shadow:0 1px 2px rgba(16,24,40,.05),0 6px 18px rgba(16,24,40,.06);border:1px solid rgba(16,24,40,.05)}
+.step .num{position:absolute;left:24px;top:36px;width:46px;height:46px;border-radius:50%;background:#1B2A5E;color:#fff;
+  font:600 14px/46px "Inter";text-align:center}
+.step h4{position:absolute;left:92px;top:26px;font:600 19px/1.2 "Inter";color:#0f1115;letter-spacing:-.01em}
+.step p{position:absolute;left:92px;top:58px;width:700px;font:400 14.5px/1.55 "Inter";color:#5b6170}
+.btnApply{position:absolute;left:1006px;top:13px;width:117px;height:36px;border-radius:9px;background:#1B2A5E;color:#fff;
+  font:600 13px/36px "Inter";text-align:center;letter-spacing:-.005em}
+
+#scrDash{background:radial-gradient(70% 60% at 50% 40%,#121219 0%,#0B0B0E 70%);opacity:0}
+.panel{position:absolute;border-radius:14px;background:#111216;border:1px solid rgba(255,255,255,.06)}
+.sk{position:absolute;height:9px;border-radius:5px;background:rgba(255,255,255,.08)}
+.skg{background:rgba(227,179,74,.55)}
+.tileI{position:absolute;width:34px;height:34px;border-radius:8px;border:1px solid rgba(227,179,74,.5);background:rgba(227,179,74,.08)}
+
+#scrTrust{background:radial-gradient(80% 70% at 50% 30%,#121319 0%,#0B0B0E 75%);opacity:0}
+.tEyebrow{position:absolute;left:0;right:0;top:44px;text-align:center;font:600 12px/1 "Inter";letter-spacing:.2em;color:#E3B34A}
+.tTitle{position:absolute;left:0;right:0;top:72px;text-align:center;font:800 33px/1.2 "Inter";color:#fff;letter-spacing:-.015em}
+.tSub{position:absolute;left:295px;width:560px;top:128px;text-align:center;font:400 14.5px/1.5 "Inter";color:#9ea3ae}
+.tile{position:absolute;width:326px;height:188px;border-radius:14px;background:#111216;border:1px solid rgba(255,255,255,.07);padding:22px}
+.tile .ic{width:36px;height:36px;border-radius:8px;border:1px solid rgba(227,179,74,.45);background:rgba(227,179,74,.08);display:flex;align-items:center;justify-content:center}
+.tile .ic svg{width:18px;height:18px;fill:none;stroke:#E3B34A;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tile h5{margin-top:22px;font:700 15.5px/1.25 "Inter";color:#fff}
+.tile p{margin-top:9px;font:400 12.5px/1.55 "Inter";color:#a5aab4}
+
+/* lifted copies */
+.lift{position:absolute;opacity:0;transform-style:preserve-3d}
+.lift.step{box-shadow:0 30px 60px rgba(60,40,40,.22),0 8px 18px rgba(60,40,40,.12)}
+.lift.btnApply{box-shadow:0 22px 44px rgba(27,42,94,.35)}
+.frost{position:absolute;left:150px;width:850px;height:118px;border-radius:16px;opacity:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.78) 0%,rgba(236,236,240,.62) 45%,rgba(214,215,222,.70) 100%);
+  border:1px solid rgba(255,255,255,.9);box-shadow:0 26px 50px rgba(60,40,40,.16),inset 0 1px 0 rgba(255,255,255,.95)}
+.frost .brush{position:absolute;inset:0;border-radius:16px;opacity:.35;
+  background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.0) 0 2px,rgba(160,162,170,.18) 2px 3px)}
+.frost .sk{background:rgba(27,42,94,.12)}
+.frost .dot{position:absolute;left:24px;top:36px;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#dfe0e6,#b9bcc6)}
+
+/* ---------- typography overlay ---------- */
+.serif{font-family:"Cormorant Garamond",serif;font-weight:500;letter-spacing:-.012em}
+.t{position:absolute;opacity:0}
+.t .sw{position:absolute;inset:0;color:transparent;-webkit-background-clip:text;background-clip:text;background-size:300% 100%;background-repeat:no-repeat;
+  background-image:linear-gradient(100deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.95) 50%,rgba(255,255,255,0) 60%)}
+.dark .sw{background-image:linear-gradient(100deg,rgba(255,244,214,0) 40%,rgba(255,236,190,.95) 50%,rgba(255,244,214,0) 60%)}
+.ink{color:#1A1A1A}
+.wht{color:#fff}
+.cap{font:500 22px/1 "Inter";letter-spacing:.14em;color:rgba(255,255,255,.72)}
+.ln{display:block}
+
+/* ---------- trust ---------- */
+#trust{perspective:1800px}
+.streak{position:absolute;bottom:-600px;width:1.5px;height:520px;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.55) 50%,rgba(255,255,255,0))}
+.tc{position:absolute;left:50%;top:50%;width:440px;height:286px;margin-left:-220px;margin-top:-200px;border-radius:20px;opacity:0;
+  background:linear-gradient(160deg,#16171c 0%,#111216 55%,#0e0f13 100%);border:1px solid rgba(255,255,255,.07);padding:36px;
+  box-shadow:0 40px 80px rgba(0,0,0,.6)}
+.tc .rimL{position:absolute;inset:-1px;border-radius:20px;border:1.5px solid rgba(227,179,74,.85);opacity:0;
+  -webkit-mask-image:linear-gradient(135deg,#000 0%,rgba(0,0,0,.2) 45%,rgba(0,0,0,0) 70%);mask-image:linear-gradient(135deg,#000 0%,rgba(0,0,0,.2) 45%,rgba(0,0,0,0) 70%)}
+.tc .ic{width:58px;height:58px;border-radius:12px;border:1.5px solid rgba(227,179,74,.55);background:rgba(227,179,74,.08);display:flex;align-items:center;justify-content:center}
+.tc .ic svg{width:28px;height:28px;fill:none;stroke:#E3B34A;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tc h5{margin-top:30px;font:700 25px/1.2 "Inter";color:#fff;letter-spacing:-.01em}
+.tc p{margin-top:12px;font:400 17px/1.55 "Inter";color:#a5aab4}
+.tcap{position:absolute;top:760px;width:440px;text-align:center;font-size:46px}
+
+/* ---------- whip ---------- */
+.wk{position:absolute;left:0;border-radius:20px}
+
+/* ---------- end ---------- */
+#bloom{position:absolute;left:50%;top:50%;width:1100px;height:1100px;margin-left:-550px;margin-top:-490px;border-radius:50%;opacity:0;
+  background:radial-gradient(circle,rgba(143,124,248,.42) 0%,rgba(96,78,220,.20) 30%,rgba(46,36,150,.06) 55%,rgba(46,36,150,0) 70%)}
+#lockup{position:absolute;left:0;right:0;top:470px;display:flex;align-items:center;justify-content:center;gap:34px;opacity:0}
+#lockup img{width:142px;height:116px;display:block}
+#wordmark{font:700 104px/1 "Inter";color:#fff;letter-spacing:.07em}
+</style>
+</head>
+<body>
+<div id="root" data-film data-duration="36.5" data-fps="30" data-width="1920" data-height="1080" data-audio="assets/score.m4a">
+
+
+  <div id="bokehBack" class="layer">
+    <div class="bokeh bk-g" id="bk1" style="left:-120px;top:120px;width:420px;height:420px"></div>
+    <div class="bokeh bk-v" id="bk2" style="left:1620px;top:40px;width:480px;height:480px"></div>
+    <div class="bokeh bk-v" id="bk3" style="left:-160px;top:700px;width:380px;height:380px"></div>
+    <div class="bokeh bk-g" id="bk4" style="left:1680px;top:720px;width:360px;height:360px"></div>
+    <div class="bokeh bk-g" id="bk5" style="left:880px;top:-220px;width:340px;height:340px"></div>
+  </div>
+
+  <div id="bgDark" class="layer"></div>
+  <div id="bgCream" class="layer" style="opacity:0"></div>
+
+  <!-- 3D stage -->
+  <div id="stage" class="layer">
+    <div id="rig">
+      <div id="floor"></div>
+      <div id="bob">
+        <div id="base">
+          <div class="spk" style="left:22px"></div>
+          <div class="spk" style="right:22px"></div>
+          <div id="kbWell"></div>
+          <div id="pad"></div>
+          <div id="front"><div id="notch"></div></div>
+          <div class="side" id="sideL"></div>
+          <div class="side" id="sideR"></div>
+        </div>
+        <div id="lid">
+          <div id="lidBack"></div>
+          <div id="rim"></div>
+          <div id="bezel"><div id="cam"></div></div>
+          <div id="screen">
+            <div class="scr" id="scrHero"><img src="assets/hero_screen.png" alt=""></div>
+            <div class="scr" id="heroBlur" style="opacity:0;background:url(assets/hero_screen.png) 0 0/100% 100%"></div>
+
+            <div class="scr" id="scrHIW">
+              <img class="nav" src="assets/nav.png" alt="">
+              <div class="hiwPill"></div>
+              <div class="step" id="s1" style="top:80px"><div class="num">01</div><h4>Apply for access</h4><p>Submit your application through our private access form. Tell us about your investor type, location, and investment interests.</p></div>
+              <div class="step" id="s2" style="top:210px"><div class="num">02</div><h4>Complete investor eligibility review</h4><p>Our team reviews your application to verify accredited investor status, NRI eligibility, or other qualifying criteria per the applicable offering jurisdiction.</p></div>
+              <div class="step" id="s3" style="top:340px"><div class="num">03</div><h4>Complete KYC</h4><p>Upload identity and address documents. AASTHI conducts a KYC/KYB review before granting access to any offering materials.</p></div>
+              <div class="step" id="s4" style="top:470px"><div class="num">04</div><h4>Review private offering materials</h4><p>Once approved, access offering pages including issuer disclosures, risk factors, use of proceeds, SPV structure, and eligibility requirements.</p></div>
+            </div>
+
+            <div class="scr" id="scrDash">
+              <img class="nav" src="assets/nav.png" alt="">
+              <div class="panel" style="left:40px;top:92px;width:700px;height:380px">
+                <div class="sk skg" style="left:28px;top:28px;width:120px"></div>
+                <div class="sk" style="left:28px;top:48px;width:200px;height:7px"></div>
+                <svg id="chart" width="700" height="380" viewBox="0 0 700 380" style="position:absolute;left:0;top:0">
+                  <defs>
+                    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E3B34A" stop-opacity=".30"/><stop offset="1" stop-color="#E3B34A" stop-opacity="0"/></linearGradient>
+                    <clipPath id="areaClip"><rect id="areaRect" x="0" y="0" width="0" height="380"/></clipPath>
+                  </defs>
+                  <g stroke="rgba(255,255,255,.05)" stroke-width="1">
+                    <line x1="28" y1="130" x2="672" y2="130"/><line x1="28" y1="190" x2="672" y2="190"/><line x1="28" y1="250" x2="672" y2="250"/><line x1="28" y1="310" x2="672" y2="310"/>
+                  </g>
+                  <path clip-path="url(#areaClip)" fill="url(#area)" d="M28 300 C 90 292, 120 262, 170 268 S 250 250, 300 226 S 380 236, 420 204 S 500 176, 540 170 S 620 130, 672 104 L 672 350 L 28 350 Z"/>
+                  <path id="line" fill="none" stroke="#E3B34A" stroke-width="3.2" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(227,179,74,.8))" d="M28 300 C 90 292, 120 262, 170 268 S 250 250, 300 226 S 380 236, 420 204 S 500 176, 540 170 S 620 130, 672 104"/>
+                  <circle id="dotEnd" cx="672" cy="104" r="6" fill="#E3B34A" opacity="0" style="filter:drop-shadow(0 0 8px rgba(227,179,74,.9))"/>
+                </svg>
+              </div>
+              <div class="panel" style="left:760px;top:92px;width:350px;height:180px">
+                <div class="tileI" style="left:24px;top:24px"></div>
+                <div class="sk" style="left:72px;top:30px;width:150px"></div><div class="sk" style="left:72px;top:48px;width:100px;height:7px"></div>
+                <div class="sk" style="left:24px;top:92px;width:300px"></div><div class="sk" style="left:24px;top:114px;width:260px"></div><div class="sk skg" style="left:24px;top:142px;width:90px"></div>
+              </div>
+              <div class="panel" style="left:760px;top:292px;width:350px;height:180px">
+                <div class="tileI" style="left:24px;top:24px"></div>
+                <div class="sk" style="left:72px;top:30px;width:170px"></div><div class="sk" style="left:72px;top:48px;width:120px;height:7px"></div>
+                <div class="sk" style="left:24px;top:92px;width:280px"></div><div class="sk" style="left:24px;top:114px;width:300px"></div><div class="sk skg" style="left:24px;top:142px;width:70px"></div>
+              </div>
+              <div class="panel" style="left:40px;top:492px;width:340px;height:150px"><div class="tileI" style="left:22px;top:22px"></div><div class="sk" style="left:22px;top:82px;width:260px"></div><div class="sk" style="left:22px;top:104px;width:180px"></div></div>
+              <div class="panel" style="left:400px;top:492px;width:340px;height:150px"><div class="tileI" style="left:22px;top:22px"></div><div class="sk" style="left:22px;top:82px;width:240px"></div><div class="sk" style="left:22px;top:104px;width:200px"></div></div>
+              <div class="panel" style="left:760px;top:492px;width:350px;height:150px"><div class="tileI" style="left:22px;top:22px"></div><div class="sk" style="left:22px;top:82px;width:270px"></div><div class="sk skg" style="left:22px;top:104px;width:110px"></div></div>
+            </div>
+
+            <div class="scr" id="scrTrust">
+              <div class="tEyebrow">BUILT FOR TRUST</div>
+              <div class="tTitle">Safety isn't a footer link. It's the foundation.</div>
+              <div class="tSub">Every offering on Aasthi goes through compliance checks, issuer diligence, and risk disclosure — before it ever reaches you.</div>
+              <div class="tile" style="left:70px;top:204px"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div><h5>KYC / AML Verification</h5><p>Every investor and issuer passes identity verification before accessing any offering.</p></div>
+              <div class="tile" style="left:412px;top:204px"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 4v16M6 7h12M8 20h8"/><path d="M6 7l-3 6a3 3 0 006 0z"/><path d="M18 7l-3 6a3 3 0 006 0z"/></svg></div><h5>Investor Eligibility</h5><p>Accreditation and jurisdiction checks ensure you only see offerings you're eligible for.</p></div>
+              <div class="tile" style="left:754px;top:204px"><div class="ic"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/></svg></div><h5>Offering Disclosures</h5><p>Full offering documents, SPV structures, and terms — available before you commit.</p></div>
+              <div class="tile" style="left:70px;top:410px"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 4L2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg></div><h5>Risk Disclosures</h5><p>Every deal carries transparent risk disclosures. No returns are guaranteed.</p></div>
+              <div class="tile" style="left:412px;top:410px"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></div><h5>Issuer Diligence</h5><p>Sponsors are vetted for track record, background, and operational capability.</p></div>
+              <div class="tile" style="left:754px;top:410px"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div><h5>IFSCA Regulated</h5><p>Operating under IFSCA's Regulatory Sandbox Framework with per-offering compliance.</p></div>
+            </div>
+          </div>
+          <div id="glassSheen"></div>
+          <div id="gloss"><div id="glossBar"></div></div>
+
+          <!-- elements that peel off the screen -->
+          <div id="lifts">
+            <div class="frost" id="f2" style="top:470px"><div class="brush"></div><div class="dot"></div><div class="sk" style="left:92px;top:34px;width:300px;height:12px"></div><div class="sk" style="left:92px;top:64px;width:640px"></div><div class="sk" style="left:92px;top:84px;width:420px"></div></div>
+            <div class="frost" id="f1" style="top:470px"><div class="brush"></div><div class="dot"></div><div class="sk" style="left:92px;top:34px;width:260px;height:12px"></div><div class="sk" style="left:92px;top:64px;width:600px"></div><div class="sk" style="left:92px;top:84px;width:380px"></div></div>
+            <div class="step lift" id="L1" style="top:80px"><div class="num">01</div><h4>Apply for access</h4><p>Submit your application through our private access form. Tell us about your investor type, location, and investment interests.</p></div>
+            <div class="step lift" id="L3" style="top:340px"><div class="num">03</div><h4>Complete KYC</h4><p>Upload identity and address documents. AASTHI conducts a KYC/KYB review before granting access to any offering materials.</p></div>
+            <div class="btnApply lift" id="LB">Apply for Access</div>
+            <div class="step lift" id="L4" style="top:470px"><div class="num">04</div><h4>Review private offering materials</h4><p>Once approved, access offering pages including issuer disclosures, risk factors, use of proceeds, SPV structure, and eligibility requirements.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- trust section -->
+  <div id="trust" class="layer" style="opacity:0">
+    <div id="streaks" class="layer"></div>
+    <div class="tc" id="tc1"><div class="rimL"></div><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div><h5>KYC / AML Verification</h5><p>Every investor and issuer passes identity verification before accessing any offering.</p></div>
+    <div class="tc" id="tc2"><div class="rimL"></div><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 4L2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg></div><h5>Risk Disclosures</h5><p>Every deal carries transparent risk disclosures. No returns are guaranteed.</p></div>
+    <div class="tc" id="tc3"><div class="rimL"></div><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div><h5>IFSCA Regulated</h5><p>Operating under IFSCA's Regulatory Sandbox Framework with per-offering compliance.</p></div>
+    <div class="t serif wht tcap" id="tx1" style="left:180px">KYC verified.<span class="sw">KYC verified.</span></div>
+    <div class="t serif wht tcap" id="tx2" style="left:740px">risk disclosed.<span class="sw">risk disclosed.</span></div>
+    <div class="t serif wht tcap" id="tx3" style="left:1300px">IFSCA regulated.<span class="sw">IFSCA regulated.</span></div>
+  </div>
+
+  <!-- floating typography -->
+  <div id="type" class="layer">
+    <div class="t serif" id="c0" style="left:0;right:0;top:680px;text-align:center;font-size:84px;line-height:1.1;color:rgba(255,255,255,.82)">you moved to the US.</div>
+    <div class="t serif wht" id="h0" style="left:0;right:0;top:470px;text-align:center;font-size:118px;line-height:1.05">your investments don’t need to.<span class="sw" style="text-align:center">your investments don’t need to.</span></div>
+
+    <div class="t serif ink dark" id="h1" style="left:150px;top:380px;width:640px;font-size:104px;line-height:1.02"><span class="ln">invest in India.</span><span class="ln">from anywhere.</span><span class="sw"><span class="ln">invest in India.</span><span class="ln">from anywhere.</span></span></div>
+
+    <div class="t serif wht" id="h2" style="left:130px;top:90px;width:900px;font-size:94px;line-height:1.04;text-shadow:0 4px 40px rgba(0,0,0,.45)">with AASTHI, investing back home becomes simpler.<span class="sw">with AASTHI, investing back home becomes simpler.</span></div>
+
+    <div class="t serif ink dark" id="a1" style="left:150px;top:330px;font-size:112px;line-height:1">apply.<span class="sw">apply.</span></div>
+    <div class="t serif ink dark" id="a2" style="left:150px;top:460px;font-size:112px;line-height:1">verify.<span class="sw">verify.</span></div>
+    <div class="t serif ink dark" id="a3" style="left:150px;top:590px;font-size:112px;line-height:1">get access.<span class="sw">get access.</span></div>
+
+    <div class="t serif ink dark" id="d1" style="left:1130px;top:230px;width:740px;font-size:76px;line-height:1.04">discover private-market opportunities.<span class="sw">discover private-market opportunities.</span></div>
+    <div class="t serif ink dark" id="d2" style="left:1130px;top:445px;width:740px;font-size:76px;line-height:1.04">review the details.<span class="sw">review the details.</span></div>
+    <div class="t serif ink dark" id="d3" style="left:1130px;top:555px;width:740px;font-size:76px;line-height:1.04">choose what works for you.<span class="sw">choose what works for you.</span></div>
+
+    <div class="t serif ink dark" id="h3a" style="left:140px;top:340px;width:700px;font-size:92px;line-height:1.04">invest. track.<span class="sw">invest. track.</span></div>
+    <div class="t serif ink dark" id="h3b" style="left:140px;top:436px;width:700px;font-size:92px;line-height:1.04">stay updated.<span class="sw">stay updated.</span></div>
+    <div class="t serif ink dark" id="h3c" style="left:140px;top:532px;width:640px;font-size:92px;line-height:1.04;font-style:italic;color:#6b5a45">all from one dashboard.<span class="sw">all from one dashboard.</span></div>
+  </div>
+
+  <!-- foreground bokeh -->
+  <div id="bokehFront" class="layer">
+    <div class="bokeh bk-g" id="fb1" style="left:1500px;top:640px;width:560px;height:560px;opacity:0"></div>
+    <div class="bokeh bk-v" id="fb2" style="left:1300px;top:-160px;width:460px;height:460px;opacity:0"></div>
+    <div class="bokeh bk-g" id="fb3" style="left:1700px;top:250px;width:300px;height:300px;opacity:0"></div>
+  </div>
+
+  <!-- light-streak whip -->
+  <div id="whip" class="layer">
+    <div id="wash" class="layer" style="opacity:0;background:linear-gradient(90deg,rgba(255,248,236,0),rgba(255,246,230,.85) 50%,rgba(255,248,236,0))"></div>
+  </div>
+
+  <!-- brand resolution -->
+  <div id="end" class="layer">
+    <div id="bloom"></div>
+    <div class="t serif wht" id="e1" style="left:260px;right:260px;top:470px;text-align:center;font-size:74px;line-height:1.08">AASTHI makes investing in India easier, wherever in the world you are.<span class="sw" style="text-align:center">AASTHI makes investing in India easier, wherever in the world you are.</span></div>
+    <div id="lockup"><img src="assets/logo.png" alt="AASTHI logo"><div id="wordmark">AASTHI</div></div>
+    <div class="t" id="tag" style="left:0;right:0;top:636px;text-align:center;font:500 30px/1 'Inter';letter-spacing:.12em;color:rgba(255,255,255,.78)">India's private markets. From anywhere.</div>
+  </div>
+</div>
+
+<script src="engine/runtime.js"></script>
+<script>
+/* ---- static build (deterministic) ---- */
+(function(){
+  const rows=[14,14,14,13,12,9], well=document.getElementById('kbWell');
+  rows.forEach((n,ri)=>{const r=document.createElement('div');r.className='kr';
+    for(let i=0;i<n;i++){const k=document.createElement('div');k.className='k';
+      if(ri===5&&i===4)k.style.flex='5.4';
+      if(ri===3&&(i===0||i===n-1))k.style.flex='1.8';
+      if(ri===4&&(i===0||i===n-1))k.style.flex='2.3';
+      r.appendChild(k);}
+    if(ri===0)r.style.flex='.6';
+    well.appendChild(r);});
+  const st=document.getElementById('streaks');
+  let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
+  for(let i=0;i<16;i++){const s=document.createElement('div');s.className='streak';s.id='sk'+i;
+    s.style.left=(80+i*112+rnd()*60)+'px';s.style.opacity=(0.25+rnd()*0.55).toFixed(2);s.style.height=(320+rnd()*420)+'px';st.appendChild(s);}
+  const wp=document.getElementById('whip');
+  const cols=['#E3B34A','#8F7CF8','#fff3d6','#7B6CF6','#E3B34A','#b9a9ff','#E3B34A','#8F7CF8','#fff'];
+  for(let i=0;i<9;i++){const w=document.createElement('div');w.className='wk';w.id='wk'+i;
+    const h=[3,10,2,18,6,3,26,8,2][i];
+    w.style.top=(170+i*86+rnd()*40)+'px';w.style.height=h+'px';w.style.width=(1300+rnd()*900)+'px';
+    w.style.background='linear-gradient(90deg,rgba(0,0,0,0),'+cols[i]+' 55%,rgba(255,255,255,.9) 80%,rgba(0,0,0,0))';
+    w.style.filter='blur('+(h>10?6:2)+'px)';w.style.opacity='0';wp.appendChild(w);}
+})();
+
+/* ---- timeline ---- */
+Film.build((tl)=>{
+const E='power3.out', IO='power2.inOut', S='sine.inOut';
+const $=s=>document.querySelector(s);
+
+function reveal(sel,t,o={}){const d=o.dur||1.0, b=o.blur==null?18:o.blur;
+  tl.fromTo(sel,{opacity:0,filter:'blur('+b+'px)',y:o.y==null?16:o.y},{opacity:1,filter:'blur(0px)',y:0,duration:d,ease:'power2.out'},t);
+  const sw=$(sel+' .sw'); if(sw) tl.fromTo(sw,{backgroundPosition:'140% 0'},{backgroundPosition:'-40% 0',duration:1.3,ease:IO},t+d*0.35);
+}
+function hide(sel,t,d=0.6,o={}){tl.to(sel,{opacity:o.to==null?0:o.to,filter:'blur('+(o.blur==null?12:o.blur)+'px)',y:o.y==null?-10:o.y,duration:d,ease:'power2.in'},t);}
+function dim(sel,t){tl.to(sel,{opacity:.28,duration:.6,ease:S},t);}
+function gloss(t,d=1.6){tl.fromTo('#glossBar',{x:-500},{x:1300,duration:d,ease:IO,immediateRender:false},t);}
+
+// initial states
+tl.set('#rig',{x:300,y:900,scale:.58,rotationX:-6,rotationY:-40},0);
+tl.set('#stage',{opacity:0},0);
+tl.set('#glossBar',{x:-500},0);
+tl.set('#bokehBack',{opacity:0},0);
+
+// ambient bokeh drift (slow, finite)
+[['#bk1',40,-30],['#bk2',-50,40],['#bk3',30,-40],['#bk4',-40,-30],['#bk5',60,30]].forEach(([s,x,y],i)=>{
+  tl.to(s,{x:x,y:y,duration:7.5,ease:S,yoyo:true,repeat:4},0.2*i);
+});
+
+/* 00:00–00:03 HOOK */
+tl.fromTo('#c0',{opacity:0,y:10},{opacity:1,y:0,duration:.9,ease:E},0.25);
+reveal('#h0',1.4,{dur:1.0,blur:22});
+hide('#h0',3.0,0.6,{blur:18});
+hide('#c0',2.95,0.5,{y:0});
+
+/* 00:03–00:07 LAPTOP RISES */
+tl.to('#bgCream',{opacity:1,duration:1.3,ease:IO},3.0);
+tl.to('#bokehBack',{opacity:1,duration:1.5,ease:IO},3.4);
+tl.to('#stage',{opacity:1,duration:.6,ease:'none'},3.15);
+tl.to('#rig',{y:110,duration:2.6,ease:'power3.out'},3.2);
+tl.to('#rig',{rotationY:-9,rotationX:-6,duration:3.2,ease:'power2.out'},3.2);
+tl.fromTo('#floor',{opacity:0,scale:.6},{opacity:1,scale:1,duration:1.8,ease:E},4.3);
+tl.to('#rig',{rotationY:-4,x:290,duration:.6,ease:S},6.4);
+tl.to('#bob',{y:-12,duration:1.7,ease:S,yoyo:true,repeat:17},5.4);
+gloss(4.9,1.8);
+reveal('#h1',4.7,{dur:1.1});
+hide('#h1',6.75,0.5);
+
+/* 00:07–00:10 INTO THE BRAND (push-in toward the A-frame visual) */
+tl.to('#rig',{x:-150,y:390,scale:1.42,rotationX:-5,rotationY:-1,duration:3.0,ease:'power2.inOut'},7.0);
+tl.to('#heroBlur',{opacity:1,duration:1.6,ease:IO},7.6);
+tl.to('#bgCream',{opacity:.1,duration:1.6,ease:IO},7.1);
+tl.to('#bokehBack',{opacity:.35,duration:1.4,ease:IO},7.1);
+[['#fb1',-1500,-300,0.0],['#fb2',-1100,260,0.35],['#fb3',-1700,120,0.7]].forEach(([s,x,y,dt])=>{
+  tl.fromTo(s,{opacity:0,x:0,y:0},{opacity:.55,duration:.8,ease:'none'},7.1+dt);
+  tl.to(s,{x:x,y:y,duration:3.0,ease:'power1.inOut'},7.1+dt);
+  tl.to(s,{opacity:0,duration:.8,ease:'none'},9.4+dt*0.5);
+});
+reveal('#h2',7.7,{dur:1.1});
+hide('#h2',10.15,0.45);
+
+/* 00:10–00:15 APPLY · VERIFY · GET ACCESS */
+tl.to('#scrHIW',{clipPath:'inset(0 0 0 0%)',duration:.9,ease:IO},9.95);
+tl.to('#heroBlur',{opacity:0,duration:.6},10.4);
+tl.to('#bgCream',{opacity:1,duration:1.0,ease:IO},10.0);
+tl.to('#bokehBack',{opacity:1,duration:1.0,ease:IO},10.2);
+tl.to('#rig',{x:320,y:120,scale:.6,rotationX:-6,rotationY:21,duration:1.25,ease:'power3.inOut'},10.0);
+tl.to('#rig',{rotationY:13,x:300,duration:3.8,ease:S},11.25);
+gloss(11.0,1.6);
+function liftCard(id,ghost,t,to){
+  tl.set(id,{opacity:1},t);
+  if(ghost) tl.to(ghost,{opacity:.18,duration:.35},t);
+  tl.fromTo(id,{z:0,x:0,y:0,rotationY:0,rotationX:0,scale:1},Object.assign({duration:1.1,ease:'power3.out'},to),t);
+}
+liftCard('#L1','#s1',10.95,{z:230,x:-150,y:-40,rotationY:-10,rotationX:4,scale:1.04});
+reveal('#a1',11.05);
+liftCard('#L3','#s3',12.2,{z:330,x:-80,y:10,rotationY:-8,rotationX:3,scale:1.05});
+dim('#a1',12.2); reveal('#a2',12.3);
+liftCard('#LB',null,13.4,{z:420,x:-420,y:250,rotationY:-8,scale:1.6});
+dim('#a2',13.4); reveal('#a3',13.5);
+// parallax float while hanging in depth
+tl.to('#L1',{y:-52,duration:3.6,ease:S},12.05);
+tl.to('#L3',{y:-2,duration:2.6,ease:S},13.3);
+tl.to('#LB',{y:238,duration:1.6,ease:S},14.5);
+['#a1','#a2','#a3'].forEach(s=>hide(s,14.85,0.4,{y:0}));
+
+/* 00:15–00:16 WHIP */
+tl.to('#stage',{x:700,filter:'blur(14px)',duration:.5,ease:'power2.in'},15.0);
+for(let i=0;i<9;i++){
+  const t=15.0+i*0.045;
+  tl.fromTo('#wk'+i,{x:-2600,opacity:0},{x:2400,opacity:1,duration:.75,ease:'power2.inOut'},t);
+  tl.to('#wk'+i,{opacity:0,duration:.2},t+.55);
+}
+tl.to('#wash',{opacity:1,duration:.22,ease:'power2.in'},15.3);
+tl.to('#wash',{opacity:0,duration:.45,ease:'power2.out'},15.53);
+// reset under cover
+tl.set(['#L1','#L3','#LB'],{opacity:0},15.5);
+tl.set(['#s1','#s3'],{opacity:1},15.5);
+tl.set('#rig',{x:-390,y:120,scale:.57,rotationX:-6,rotationY:-27},15.5);
+tl.fromTo('#stage',{x:-700,filter:'blur(14px)'},{x:0,filter:'blur(0px)',duration:.6,ease:'power3.out',immediateRender:false},15.5);
+
+/* 00:16–00:21 DISCOVER · REVIEW · CHOOSE */
+tl.to('#rig',{rotationY:-13,rotationX:-4,x:-405,duration:5.0,ease:S},16.0);
+liftCard('#L4','#s4',16.35,{z:360,x:200,y:-70,rotationY:12,rotationX:3,scale:1.06});
+tl.set('#f1',{opacity:1},16.85);
+tl.fromTo('#f1',{z:0,x:0,y:0,rotationZ:0,rotationY:0},{z:250,x:240,y:-150,rotationZ:-3,rotationY:12,duration:1.1,ease:E},16.85);
+tl.set('#f2',{opacity:1},17.25);
+tl.fromTo('#f2',{z:0,x:0,y:0,rotationZ:0,rotationY:0},{z:140,x:280,y:-230,rotationZ:-6,rotationY:12,duration:1.1,ease:E},17.25);
+tl.to('#L4',{y:-92,duration:3.4,ease:S},17.45);
+tl.to('#f1',{y:-166,duration:3.0,ease:S},17.96);
+tl.to('#f2',{y:-240,rotationZ:-7,duration:2.6,ease:S},18.35);
+gloss(16.6,1.6);
+reveal('#d1',16.45);
+dim('#d1',18.35); reveal('#d2',18.4);
+dim('#d2',19.5); reveal('#d3',19.6);
+['#d1','#d2','#d3'].forEach(s=>hide(s,20.8,0.45,{y:0}));
+
+/* 00:21–00:24 ONE DASHBOARD */
+tl.to(['#L4','#f1','#f2'],{z:0,x:0,y:0,rotationZ:0,rotationY:0,rotationX:0,scale:1,duration:.8,ease:'power2.inOut'},20.9);
+tl.to(['#f1','#f2'],{opacity:0,duration:.45},21.35);
+tl.to('#L4',{opacity:0,duration:.4},21.55);
+tl.to('#s4',{opacity:1,duration:.3},21.5);
+tl.to('#scrDash',{opacity:1,duration:.7,ease:IO},21.55);
+tl.to('#rig',{x:330,y:115,scale:.61,rotationX:-5,rotationY:0,duration:2.0,ease:'power2.inOut'},21.0);
+tl.to('#rig',{scale:.64,rotationY:3,duration:1.2,ease:S},23.0);
+const line=$('#line'), L=line.getTotalLength();
+tl.fromTo('#line',{strokeDasharray:L,strokeDashoffset:L},{strokeDashoffset:0,duration:1.7,ease:'power2.inOut'},22.0);
+tl.fromTo('#areaRect',{attr:{width:0}},{attr:{width:700},duration:1.7,ease:'power2.inOut'},22.0);
+tl.to('#dotEnd',{opacity:1,duration:.3},23.6);
+gloss(22.3,1.6);
+reveal('#h3a',21.3); reveal('#h3b',22.45); reveal('#h3c',23.25);
+['#h3a','#h3b','#h3c'].forEach(s=>hide(s,24.25,0.45));
+
+/* 00:24–00:27 BUILT FOR TRUST */
+tl.to('#stage',{opacity:0,duration:.5,ease:'power1.in'},24.35);
+tl.to('#bgCream',{opacity:0,duration:.55,ease:'power1.in'},24.35);
+tl.to('#bokehBack',{opacity:0,duration:.5},24.35);
+tl.to('#trust',{opacity:1,duration:.4},24.6);
+for(let i=0;i<16;i++){tl.fromTo('#sk'+i,{y:0},{y:-(1500+(i%5)*160),duration:4.2,ease:'none'},24.5+(i%4)*0.12);}
+const tcs=[['#tc1',-500,-7,24.85],['#tc2',0,0,25.8],['#tc3',500,7,26.75]];
+tcs.forEach(([s,x,ry,t],i)=>{
+  tl.fromTo(s,{opacity:0,x:x*1.12,y:60,z:-700,scale:1.12,rotationY:ry*4,rotationX:10},{opacity:1,y:0,z:0,scale:1.12,rotationY:ry,rotationX:5,duration:1.2,ease:E},t);
+  tl.fromTo(s+' .rimL',{opacity:0},{opacity:1,duration:.7,ease:IO},t+.55);
+  tl.to(s,{rotationY:ry*-0.4,rotationX:2,y:-12,duration:28.4-(t+1.2),ease:S},t+1.2);
+  reveal('#tx'+(i+1),t+.3,{dur:.9});
+});
+tl.to(['#tc1','#tc2','#tc3'],{z:260,opacity:0,filter:'blur(10px)',duration:.6,ease:'power2.in'},28.45);
+['#tx1','#tx2','#tx3'].forEach(s=>hide(s,28.45,0.45,{y:0}));
+tl.to('#streaks',{opacity:0,duration:.5},28.5);
+
+/* 00:27–00:30 BRAND RESOLUTION */
+tl.set('#scrTrust',{opacity:1},28.3);
+tl.set('#floor',{opacity:.25},28.3);
+tl.set('#rig',{x:0,y:80,scale:.7,rotationX:-6,rotationY:22},28.3);
+tl.set('#stage',{x:0,filter:'blur(0px)'},28.3);
+tl.to('#stage',{opacity:1,duration:.4,ease:'power1.out'},28.55);
+tl.to('#rig',{scale:.56,y:60,rotationY:15,duration:1.6,ease:'power2.out'},28.55);
+gloss(28.6,1.1);
+tl.to('#stage',{opacity:0,filter:'blur(8px)',duration:.5,ease:'power1.in'},29.0);
+reveal('#e1',29.3,{dur:.8,blur:16});
+tl.to('#e1',{y:-190,scale:.82,duration:.6,ease:'power2.inOut'},32.7);
+tl.fromTo('#bloom',{opacity:0,scale:.6},{opacity:1,scale:1,duration:.7,ease:E},32.75);
+tl.fromTo('#lockup',{opacity:0,filter:'blur(16px)',scale:.94},{opacity:1,filter:'blur(0px)',scale:1,duration:.55,ease:E},32.85);
+tl.fromTo('#tag',{opacity:0,filter:'blur(10px)',y:10},{opacity:1,filter:'blur(0px)',y:0,duration:.5,ease:E},33.35);
+tl.to('#bloom',{scale:1.08,opacity:.8,duration:1.1,ease:S,yoyo:true,repeat:2},33.5);
+
+});
+</script>
+</body>
+</html>
