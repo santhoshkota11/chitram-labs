@@ -1,37 +1,114 @@
-# ENGINE — code the film in HTML/CSS/GSAP and render it to MP4
+# ENGINE — build the film as code, preview it, render it
 
-Phase 2 of 2. Input: the Production Brief + Build Sheet from `DIRECTOR.md` (saved as `brief.md`).
-Output: `out/film.mp4` (H.264 + AAC), plus the project folder (editable, re-renderable).
+You are a **senior motion developer**: you keyframe in code the way a top After Effects artist
+keyframes in the timeline — deliberate timing, designed curves, layered depth, nothing accidental.
+The craft is in `MOTION.md`; this file is how you build, check and deliver.
 
-The engine is ours (no HyperFrames, no Remotion): **a film is one HTML page with one paused GSAP
-timeline**; `bin/render.mjs` seeks that timeline frame by frame in headless Chromium, screenshots
-each frame, and pipes the frames into ffmpeg. Anything you can build in a browser, you can render.
-
-`$SKILL` below = this skill's folder (`.claude/skills/chitram-film`).
-
-You are a **senior motion developer**: you write animation the way a top After Effects artist
-keyframes — deliberate timing, eased curves, layered depth, nothing accidental. Code is your
-keyframe editor.
-
-## THE LAW (every build; a violation is a failed job)
-
-1. **Build what the brief says, in the brief's order and times.** The Build Sheet is the contract.
-   If something can't be built as written, say so and propose the nearest buildable version —
-   never silently change it.
-2. **Static layout first, then motion.** No timeline code before the final-state layout has been
-   snapshotted and looks right.
-3. **Kit before custom.** If §4/§6 has it, use it. Custom code only for `CUSTOM` rows — and only
-   after §R if you are not certain how the effect is done.
-4. **Deterministic or it doesn't ship:** no randomness, clocks, CSS animations, network, or `play()`.
-5. **One reveal per element, one transform owner per element.** Exits use `to`.
-6. **Nothing overlaps, nothing is unreadable.** Text beside the hero; `data-clear` on what text must
-   never cover; every caption readable for its full reading time.
-7. **Prove it.** `check.mjs --strict` clean (or every warning explained), contact sheet read, the
-   final MP4 probed. Never report "done" on something you have not looked at.
-8. **Edits are surgical** (§E): change only what was asked, then re-check and re-render.
-9. **Don't know → research (§R), then build.** Never guess an API, an effect or a look.
+A film is **one HTML page that is a pure function of time**: one paused GSAP timeline, built
+inside `Film.build(tl => {...})`. `runtime.js` exposes `window.__film.seek(t)`; the renderer seeks
+every frame, screenshots it and encodes an MP4 with ffmpeg. Everything a browser can draw — CSS 3D,
+SVG, gradients, blur, masks, fonts — can be in the film.
 
 ---
+
+## 1. THE LAW (a violation is a failed job)
+
+1. **The Build Sheet is the contract.** Build what it says, at its times. If something can't be
+   built as written, say so and propose the nearest buildable version — never change it silently.
+2. **Static layout first.** Write every element at its final, fully revealed position; check the
+   layout (preview or snapshots) before any timeline code.
+3. **Kit before custom** (§5, §7). Custom code only for `CUSTOM` rows, and only after §R if you are
+   not certain how the effect is made.
+4. **Deterministic or it doesn't ship:** no `Math.random` (use `MK.rng(seed)`), no clocks
+   (`Date.now`, `performance.now`), no `setTimeout`/`setInterval`/rAF animation, no CSS
+   `@keyframes`/`transition`, no `repeat: -1` (use `MK.repeats`), no `.play()`.
+5. **One reveal per element, one transform owner per element.** Exits use `to`. Entrance on a
+   wrapper, ambient motion on its child.
+6. **Nothing overlaps, nothing is unreadable.** Text beside the hero, never over it; every caption
+   fully visible for 0.6 s + 0.22 s × words; contrast ≥ 4.5:1 (≥ 3:1 for big headlines).
+7. **Prove it** (§10). Never say "done" about anything you haven't looked at or measured.
+8. **Edits are surgical** (§E). **Unknown technique → research first** (§R).
+
+## 2. The agent loop (run it for every film)
+
+```
+PLAN     read the Build Sheet → list scenes, elements (ids), assets, kit calls, CUSTOM rows, cue times
+RESEARCH for each CUSTOM row you are not certain about → §R, prototype in a 3–6 s test film
+LAYOUT   write HTML/CSS for every element in its final state → preview/snapshot → fix
+ANIMATE  scene by scene in time order, one comment block per scene, kit calls from the Build Sheet
+AUDIO    cues.json from the sfx column (+VO placement) → scripts/synth.py
+VERIFY   timeline audit (§10.1) → preview/snapshots at every scene midpoint and transition → §10.2 → fix
+REVIEW   MOTION.md §19 director's review on the snapshots → fix the weakest scene → re-verify
+RENDER   scripts/render.mjs → probe the MP4 (duration, size, audio) → look at a frame strip
+DELIVER  the MP4 (or the film folder + render command) + what changed vs the brief and why
+```
+Keep a short checklist in your reply as you go (✓ per stage). If a stage fails twice, simplify
+that element to the nearest kit effect and say so.
+
+## 3. The film folder (what you produce)
+
+```
+<film>/
+  index.html     the film
+  runtime.js     copy of assets/runtime.js      (seek contract, preview player)
+  motion-kit.js  copy of assets/motion-kit.js   (MK effects, transitions, device rigs)
+  kit.css        copy of assets/kit.css
+  gsap.min.js    optional local copy (else the CDN tag is used)
+  assets/        screens, logo (transparent PNG), photos, score.wav
+  cues.json      audio cue sheet → assets/score.wav via scripts/synth.py
+  brief.md       Production Prompt + Build Sheet
+```
+
+`index.html` skeleton:
+```html
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Film</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&display=block" rel="stylesheet">
+<link rel="stylesheet" href="kit.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+:root{ --bg:#0B0B0E; --paper:#fff; --ink:#1A1A1A; --accent:#E3B34A; }
+#film{ background:var(--bg); font-family:Inter,sans-serif }
+.serif{ font-family:"Cormorant Garamond",serif; font-weight:500; letter-spacing:-.012em }
+</style></head><body>
+<div id="film" data-film data-duration="30" data-fps="30" data-width="1920" data-height="1080" data-audio="assets/score.wav">
+  <div id="bgDark" class="layer"></div>
+  <div id="bgLight" class="layer" style="opacity:0"></div>
+  <div id="ambience" class="layer"></div>
+  <div id="stage" class="layer"></div>
+  <div id="s1" class="layer" data-in="0" data-out="3.6">
+    <div class="t serif" id="h0" style="left:0;right:0;top:470px;text-align:center;font-size:118px;color:#fff">your headline.</div>
+  </div>
+  <div id="fx" class="layer"></div>
+</div>
+<script src="runtime.js"></script><script src="motion-kit.js"></script>
+<script>
+Film.build((tl) => {
+  // SCENE 1 | 00:00–00:03 | HOOK
+  MK.blurIn(tl, "#h0", 0.9, { dur: 1.1, blur: 22 });
+  MK.blurOut(tl, "#h0", 3.0);
+});
+</script></body></html>
+```
+Rules for the page: layers are full-frame (`.layer`); scene containers carry `data-in/data-out`;
+every on-screen text element has class `t`; mark what text must never cover with `data-clear`;
+centre with `left:0;right:0;text-align:center` (never `translate(-50%)` on animated elements).
+
+## 4. Preview and render — pick the path your environment allows
+
+| Environment | Preview | Final MP4 |
+|---|---|---|
+| **Claude.ai (code execution)** | Build a single-file preview: paste the contents of `runtime.js`, `motion-kit.js` and `kit.css` into inline `<script>`/`<style>` tags (keep the GSAP cdnjs tag and the Google Fonts link), add `data-preview` to the `#film` root, and publish it as an HTML artifact — it gets play/pause, a scrubber and frame stepping. | If the sandbox has `node`, `ffmpeg` and Chromium (`which node ffmpeg chromium chromium-browser`), run `scripts/render.mjs`. Otherwise zip the film folder and give the user the one-line render command. |
+| **ChatGPT (canvas / code interpreter)** | Show the single-file HTML in canvas. | Code interpreter usually has no browser: deliver the folder zip + render command. |
+| **Local machine / Claude Code** | `open index.html?preview` in a browser (space = play, arrows = frame step). | `node scripts/render.mjs <film>/index.html --out film.mp4` |
+
+Render script requirements (local): Node 18+, `npm i playwright-core@1.56.1`,
+`npx playwright-core install chromium`, ffmpeg on PATH. Snapshots for checking:
+`node scripts/render.mjs <film>/index.html --at scenes` (writes `snapshots/contact-sheet.png`).
+Draft: `--draft` (half size, 15 fps). The renderer serves the folder locally, loads the fonts and
+GSAP, and muxes `data-audio`.
+
+Always tell the user plainly which path you used and what they need to run, if anything.
+
 
 ## R. Research protocol — when you don't know how to do something
 
@@ -58,7 +135,7 @@ how to build (e.g. "liquid glass", "Apple-style parallax text", "SVG morph", "go
    replace `setTimeout` sequencing with timeline positions; no GSAP club plugins unless their file
    is bundled locally — build the equivalent with core tweens (split text yourself, draw SVG with
    `strokeDashoffset`, morph with interpolated path points or clip-path).
-6. **Prototype small:** a 3–6 s test page (copy `examples/recipes/`), snapshot at 3–5 times, check
+6. **Prototype small:** a 3–6 s test page (copy the skeleton in §3), snapshot at 3–5 times, check
    the look against the source. Only then put it in the film.
 7. **Record what you learned** as a short recipe comment in the film (source URL + mechanism), so
    the next edit doesn't re-research.
@@ -76,114 +153,7 @@ No web access? Say so, use the closest kit effect, and describe the gap honestly
 
 ---
 
-## 0. Setup and commands
-
-```bash
-# one-time (per machine)
-cd $SKILL && npm install            # playwright-core + gsap (gsap is also vendored in engine/)
-npx playwright-core install chromium   # skip if Chromium for Playwright 1.56 is already present
-pip install numpy scipy pillow opencv-python-headless    # audio + asset tools
-# ffmpeg must be on PATH
-
-# per film
-node $SKILL/bin/init.mjs films/<name> --duration 30 --size 1920x1080 --fps 30
-python3 $SKILL/tools/prep_image.py …                    # assets (§9)
-python3 $SKILL/audio/synth.py films/<name>/cues.json films/<name>/assets/score.wav
-node $SKILL/bin/check.mjs films/<name>                  # QA gate (must be 0 errors)
-node $SKILL/bin/render.mjs films/<name> --at 1.5,5,9.8  # snapshots + contact sheet
-node $SKILL/bin/render.mjs films/<name> --draft         # half-res 15 fps review video (fast)
-node $SKILL/bin/render.mjs films/<name> --out films/<name>/out/film.mp4   # final
-node $SKILL/bin/preview.mjs films/<name>                # interactive browser preview (humans)
-```
-
-Render speed reference: 1080p ≈ 10–12 frames/s with 4 workers on a laptop-class CPU
-(30 s film ≈ 75–90 s). Draft ≈ 4× faster. Snapshots are instant — use them for every check.
-
----
-
-## 1. The runtime contract (non-negotiable)
-
-1. Root element: `<div id="film" data-film data-duration="30" data-fps="30" data-width="1920" data-height="1080" data-audio="assets/score.wav">`. These attributes are the single source of truth.
-2. Scripts in order: `engine/vendor/gsap.min.js` (head) → markup → `engine/runtime.js` → `engine/motion-kit.js` → your script.
-3. All animation lives inside **one** call: `Film.build((tl) => { ... })`. `tl` is a paused GSAP timeline. Position every tween with an **absolute time** (third argument).
-4. Deterministic only. **Banned:** `Math.random` (use `MK.rng(seed)`), `Date.now`/`performance.now`, `setTimeout`/`setInterval`/`requestAnimationFrame` for animation, `repeat: -1` (use `MK.repeats(span, period)`), CSS `@keyframes`/`animation`/`transition`, `tl.play()`, network fetches, `<video>.play()`.
-5. Offline only: every font, image, script and sound is a local file in the project. No CDN links.
-6. **Never** put a CSS `transform` on an element that GSAP moves with x/y/scale/rotation. Set start transforms with `tl.set(el, {...}, 0)` or `fromTo`. Static transforms on elements you never tween are fine.
-7. Reveal each element **once** (one `fromTo`/kit reveal per element). Later changes use `to` (`MK.blurOut`, `MK.dim`, `MK.fadeOut`). Two `fromTo`s on the same property of the same element fight at seek time.
-8. `.t` elements start at `opacity:0` (kit CSS) and are what `check.mjs` audits for readability. Give every on-screen text element class `t`.
-9. Time-scoped layers: add `data-in="12.9" data-out="16"` to a scene container; the runtime hides it outside that window (cheaper frames, no leftovers). Tweens inside still run on the one timeline.
-10. Footage: image sequences `<img data-seq="assets/clip/%05d.jpg" data-count="120" data-seq-fps="30" data-at="10">` (most robust) or VP9 `<video src="x.webm" data-at="10" muted>`. Convert with `tools/prep_video.sh`. Never H.264 `<video>` (Chromium may not decode it).
-
----
-
-## 2. Project structure and layering
-
-```
-films/<name>/
-  index.html        the film (one page)
-  brief.md          Production Brief + Build Sheet (from DIRECTOR.md)
-  cues.json         audio cue sheet
-  engine/           copied by init (runtime, kit, fonts, gsap) — do not edit per film; optional:
-                    if absent, the renderer and check serve the skill's shared engine/
-  assets/           screens, logo, photos, footage, score.wav
-  snapshots/        check images (generated)
-  out/              renders (generated)
-```
-
-**Layer stack (bottom → top). Build it in this order in the HTML:**
-
-```
-bgDark, bgLight            full-frame backgrounds; crossfade with opacity for day/night changes
-ambience                   bokeh, light pools, pale type walls
-stage                      3D world: device rigs (laptop/phone) and cards lifted from them
-scene layers  s1…sN        per-scene content (data-in/data-out), graphic shapes
-type                       captions/headlines (in front of the hero, never on its screen)
-fx                         transitions (whip streaks, blob wipes, fades) — always on top
-end                        brand resolution (logo lockup, bloom)
-```
-
-Positioning: layers are `position:absolute; inset:0` (`.layer`). Text uses `.t` + absolute
-`left/top/width` from the layout grid (§8.4). Centre with `left:0; right:0; text-align:center` —
-**never** with `transform: translate(-50%,-50%)` on an animated element.
-
----
-
-## 3. Build procedure (do these steps in order)
-
-1. `init` the project. Paste the Build Sheet into `brief.md`.
-2. **Tokens:** fill the `:root` variables and type classes from the brief's VISUAL SYSTEM.
-3. **Assets:** prepare every file in the "assets to prepare" list (§9). Check each image once by
-   reading it.
-4. **Static layout first:** write all layers and elements in their **final, fully revealed**
-   positions. Temporarily call `tl.set(".t", {opacity:1}, 0)` and snapshot a few times to confirm
-   layout, sizes and overlaps. Remove the temporary line.
-5. **Timeline, scene by scene,** in time order, one block per Build Sheet scene, each block starting
-   with a comment `// SCENE n | 00:03–00:07 | name`. Use kit functions; write raw tweens only for
-   camera/device moves and CUSTOM effects.
-6. **Audio:** write `cues.json` from the Build Sheet's sfx column (§10). Run `synth.py`.
-7. `check.mjs` → fix every ERROR and every warning that is a real problem (§11.2).
-8. **Snapshots**: `render.mjs <film> --at scenes` (storyboard sheet: every scene midpoint + ends),
-   plus explicit times for every transition midpoint. Read the contact sheet. Fix what fails the visual checklist (§11.3). Repeat
-   6–8 until clean.
-9. **Draft render** (optional for ≤ 20 s films): watch timing/rhythm.
-10. **Final render.** Verify with ffprobe (duration, 1920×1080, audio stream) and look at a 6-frame
-    strip (§12). Deliver the MP4 path.
-
-### 3.1 Production stages are dependencies, not a queue
-```
-assets ─┐
-audio  ─┼─→ (VO? duration sync: captions follow real phrase times) ─→ transitions ─→ verify ─→ final look ─→ render
-layout ─┘        (static layout → storyboard sheet → animate scene by scene)
-```
-Independent work runs in parallel: synthesize the score (`synth.py`) and prepare images while you
-write the layout. Inside a chain, order is fixed: never animate before the static layout passes
-its snapshot; never time captions to a VO you haven't measured; never render before `check.mjs`.
-Batch visual checks: one contact sheet beats many single-frame looks (each image you read costs
-context).
-
----
-
-## 4. Kit API (engine/motion-kit.js, global `MK`)
+## 5. Kit API (engine/motion-kit.js, global `MK`)
 
 All `t` values are absolute seconds. `target` = selector string or element. Every reveal hides its
 target before `t` automatically.
@@ -222,7 +192,7 @@ target before `t` automatically.
 — scene-to-scene handoff between two full-frame scene containers; types `cut` · `crossfade` ·
 `blur` · `zoom` · `push` · `whipPan` · `iris` · `blinds` · `shutter` · `dip` (velocity-matched:
 the outgoing side accelerates out, the incoming side decelerates in, fastest at the swap). Both
-scenes' `data-in/out` must cover the transition window. Tested in `examples/transitions/`.
+scenes' `data-in/out` must cover the transition window. 
 
 ### Ambience & motion
 `els = MK.bokeh(layer, {count=6, colors, size:[260,520], seed, edges=true})` + `MK.drift(tl, els, start, end, {amp=40, period=6})` ·
@@ -242,9 +212,9 @@ Utilities: `MK.rng(seed)`, `MK.repeats(span, period)`, `MK.words(el)`, `MK.q`, `
 
 ---
 
-## 5. Motion design rules
+## 6. Motion design rules (see MOTION.md for the full craft)
 
-### 5.1 Easing vocabulary
+### 6.1 Easing vocabulary
 | Purpose | Ease |
 |---|---|
 | things arriving / settling | `power3.out` (premium), `power4.out`/`expo.out` (kinetic) |
@@ -255,7 +225,7 @@ Utilities: `MK.rng(seed)`, `MK.repeats(span, period)`, `MK.words(el)`, `MK.q`, `
 | linear drifts (walls, bands, rotation of rings) | `none` |
 Never use `linear` for arrivals, never `bounce` in premium films.
 
-### 5.2 Timing
+### 6.2 Timing
 - Premium: reveals 0.9–1.2 s, exits 0.4–0.6 s, camera moves 2.5–4 s, holds ≥ reading time.
 - Kinetic: reveals 0.35–0.6 s, staggers 0.05–0.12 s, moves 0.5–0.9 s, transitions 0.4–0.8 s.
 - **Overlap** actions: the next element starts when the previous is ~60 % done. Dead air > 0.4 s
@@ -265,7 +235,7 @@ Never use `linear` for arrivals, never `bounce` in premium films.
 - **Anticipation/follow-through:** big moves get a tiny counter-move or overshoot only in
   kinetic/playful personalities. Premium stays smooth.
 
-### 5.3 Camera
+### 6.3 Camera
 The "camera" is the transform of a container: 2D (`x, y, scale` on a scene layer) or 3D
 (`x, y, scale, rotationX, rotationY` on `lap.rig`/`ph.rig` inside a perspective stage).
 - Orbit: rotationY ±25–40° over 3–5 s. Keep rotationX between −4° and −8° for devices (steeper
@@ -276,7 +246,7 @@ The "camera" is the transform of a container: 2D (`x, y, scale` on a scene layer
   real parallax during a slow orbit for free.
 - Never animate the same property of the rig from two overlapping tweens; chain them end-to-start.
 
-### 5.4 3D rules
+### 6.4 3D rules
 - Perspective 1600–2400 px on the stage. `transform-style: preserve-3d` on every wrapper between
   the stage and the 3D children (kit sets this for rigs/lifts).
 - `filter`, `overflow:hidden`, `opacity < 1` on a 3D wrapper **flatten** its children. Apply
@@ -284,13 +254,13 @@ The "camera" is the transform of a container: 2D (`x, y, scale` on a scene layer
 - Backfaces: devices have back panels; flat cards seen past 90° look mirrored — keep card rotations
   within ±25°.
 
-### 5.5 Composition
+### 6.5 Composition
 - One focal point per frame. Hero object on one third, text on the other two thirds' side.
 - Text block width 30–50 % of the frame; top/left safe margin ≥ 4 % (check.mjs enforces).
 - Scale contrast: headline ≥ 2.5× caption size.
 - Colour contrast: text vs background ≥ 4.5:1 for captions; accent words may be lower if large.
 
-### 5.6 Professional-editor guardrails (the tells of amateur motion)
+### 6.6 Professional-editor guardrails (the tells of amateur motion)
 - **Vary eases** — no more than two independent tweens with the same ease in one scene. The ease
   is the adverb: `expo.out` = confident, `sine.inOut` = dreamy, `back.out` = playful.
 - **Direction rule:** `.out` for entrances, `.in` for exits, `.inOut` for moves between positions.
@@ -315,7 +285,7 @@ The "camera" is the transform of a container: 2D (`x, y, scale` on a scene layer
 - **Match velocity across cuts:** exit with an accelerating ease + blur ramp, enter with a
   decelerating ease + blur clear, so the fastest moments meet at the swap.
 
-### 5.7 Video is not a web page
+### 6.7 Video is not a web page
 - **Scale up:** headlines 64–130 px, body 28–42 px, labels ≥ 20 px at 1080p (in-feed/phone
   viewing: headlines ≥ 90, body ≥ 32). Borders 2–4 px, decorative opacity 12–25 % (under 10 % is
   invisible after compression), padding 60–140 px.
@@ -337,9 +307,9 @@ The "camera" is the transform of a container: 2D (`x, y, scale` on a scene layer
 
 ---
 
-## 6. Recipes (copy, then adapt ids/times)
+## 7. Recipes (copy, then adapt ids/times)
 
-### 6.1 Floating laptop: rise, orbit, push-in, screen change
+### 7.1 Floating laptop: rise, orbit, push-in, screen change
 ```js
 const lap = MK.laptop("#stage", { shadow: "rgba(112,72,62,.5)" });
 lap.screen.innerHTML = `<div class="scr" id="scrHero"><img src="assets/hero_screen.png"></div>
@@ -361,7 +331,7 @@ that keeps only the focus region sharp, and fade it in during the push:
   -webkit-mask-image:radial-gradient(28% 44% at 75% 59%,transparent 45%,#000 100%);mask-image:radial-gradient(28% 44% at 75% 59%,transparent 45%,#000 100%)}
 ```
 
-### 6.2 UI cards peel off the screen and return
+### 7.2 UI cards peel off the screen and return
 Rebuild the card in HTML twice: once inside the screen (`#s1`, the slot) and once inside
 `lap.lifts` at the same coordinates (`#L1`, class `lift`, starts hidden).
 ```js
@@ -371,7 +341,7 @@ MK.settle(tl, "#L1", 20.9, { ghosts: "#s1" });                         // glide 
 ```
 Lift toward the camera and **away from the caption side**. Different z per card (150/250/350).
 
-### 6.3 Floating glass UI assembly
+### 7.3 Floating glass UI assembly
 ```js
 const parts = ["#g1", "#g2", "#g3", "#g4"];          // .glass panels in their FINAL layout
 parts.forEach((p, i) => tl.fromTo(p,
@@ -381,7 +351,7 @@ parts.forEach((p, i) => tl.fromTo(p,
 ```
 Glass = class `glass` (light) or `glass-dark`. Keep text inside panels ≥ 22 px at 1080p.
 
-### 6.4 Chart line draws on (no fake numbers)
+### 7.4 Chart line draws on (no fake numbers)
 ```html
 <svg width="700" height="380"><defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
   <stop offset="0" stop-color="#E3B34A" stop-opacity=".3"/><stop offset="1" stop-color="#E3B34A" stop-opacity="0"/></linearGradient>
@@ -397,7 +367,7 @@ tl.fromTo("#acr", { attr: { width: 0 } }, { attr: { width: 700 }, duration: 1.7,
 Gridlines faint (5 % white), no axis labels, no values. Panels use skeleton bars
 (`<div class="sk">` 9 px tall, 8 % white) instead of invented text.
 
-### 6.5 Logo lockup resolve (end card)
+### 7.5 Logo lockup resolve (end card)
 ```html
 <div id="bloom"></div>   <!-- radial brand-colour glow, 1100px circle, centred -->
 <div id="lockup" style="position:absolute;left:0;right:0;top:470px;display:flex;align-items:center;justify-content:center;gap:34px;opacity:0">
@@ -413,7 +383,7 @@ MK.breathe(tl, "#bloom", T + .8, DURATION);   // the only thing moving in the ho
 Logo: always the user's file (keyed to transparent with `prep_image.py key`), never redrawn.
 Wordmark: the brand name in the font closest to the logo lettering, tracked +.04–.08em.
 
-### 6.6 Phone rotating between aspect ratios
+### 7.6 Phone rotating between aspect ratios
 ```js
 const ph = MK.phone("#stage", { w: 440, h: 900 });
 ph.screen.innerHTML = `
@@ -427,7 +397,7 @@ tl.to("#landscape", { opacity: 1, duration: .3 }, T + .45);
 ```
 (`#landscape` has a static CSS rotate and is never tweened for transform — only opacity.)
 
-### 6.7 Statement stack (block-wipe lines + overshoot last line)
+### 7.7 Statement stack (block-wipe lines + overshoot last line)
 ```html
 <div class="stack" style="position:absolute;left:150px;top:190px;display:flex;flex-direction:column;align-items:flex-start">
   <div class="t" id="k1">Because</div><div class="t" id="k2">great</div><div class="t" id="k3">captions</div>
@@ -440,7 +410,7 @@ MK.popIn(tl, "#k4", T + 1.5, { from: .5 });
 `.stack .t{position:relative}` so the lines stack. A bouncing dot between lines: a small circle
 tweened `y` to each line's top with `ease:"power2.out"` and `back.out` on landing.
 
-### 6.8 Rosette rolls in and becomes a bullet
+### 7.8 Rosette rolls in and becomes a bullet
 ```js
 const r = MK.rosette("#bulletHost", { size: 90 });            // host = zero-size div left of the text
 tl.fromTo(r, { x: -700, rotation: 0, opacity: 0 }, { x: 0, rotation: 420, opacity: 1, duration: 1.1, ease: "power3.out" }, T);
@@ -448,7 +418,7 @@ const end = MK.typewriter(tl, "#line", T + .9, { cps: 18 });   // text types bes
 MK.highlight(tl, "#landWord", end + .1, { bg: "linear-gradient(90deg,#C7F36B,#10B981)" });
 ```
 
-### 6.9 Glowing tube threading through blocks
+### 7.9 Glowing tube threading through blocks
 Draw the tube in **two SVG layers** with the same path: one below the blocks, one above. Clip the
 upper copy to the segments where the tube passes in front (`<clipPath>` rects), so it weaves.
 ```js
@@ -457,7 +427,7 @@ const back = MK.tube("#tubeBack", D, { width: 12 }), front = MK.tube("#tubeFront
 MK.tubeDraw(tl, back, T, 2.2); MK.tubeDraw(tl, front, T, 2.2);
 ```
 
-### 6.10 Pill → ring with a spark
+### 7.10 Pill → ring with a spark
 ```html
 <div id="pill" style="position:absolute;left:830px;top:500px;width:260px;height:80px;border-radius:40px;background:#C7F36B;opacity:0"></div>
 <div id="sparks" style="position:absolute;left:960px;top:540px;width:0;height:0"></div>
@@ -477,7 +447,7 @@ for (let i = 0; i < 8; i++) {                     // spark burst when the ring c
 tl.fromTo("#pill", { scale: 1 }, { scale: 1.12, duration: .18, yoyo: true, repeat: 1, ease: "power2.out", immediateRender: false }, T + 1.15);
 ```
 
-### 6.11 Rotating square releases a shape
+### 7.11 Rotating square releases a shape
 ```js
 tl.fromTo("#sq", { opacity: 0, rotation: 0, scale: .4 }, { opacity: 1, rotation: 135, scale: 1, duration: .9, ease: "power3.out" }, T);
 tl.to("#sq", { rotation: 225, scale: .2, opacity: 0, duration: .5, ease: "power3.in" }, T + 1.0);
@@ -486,20 +456,20 @@ tl.to(rosetteEl, { x: 520, y: -140, rotation: 360, duration: 1.2, ease: "power2.
 ```
 `#sq` and the rosette share the same centre (zero-size host div at the centre point).
 
-### 6.12 Ribbon weaving behind and in front of an inset (footage, card, phone)
+### 7.12 Ribbon weaving behind and in front of an inset (footage, card, phone)
 Same two-layer trick as 6.9: ribbon SVG A **under** the inset, ribbon SVG B **over** it with a
 clip-path that keeps only the stretches where it crosses in front. Draw both with the same
 `MK.lineDraw` timing; a thick stroke (40–70 px) with a two-stop gradient and round caps reads as a
 ribbon. Add `swoosh` SFX at the draw start.
 
-### 6.13 Screen content in HTML (rebuilt UI)
+### 7.13 Screen content in HTML (rebuilt UI)
 Build UI at the device's screen size (e.g. 1150×672) with real fonts, exact copy from the ref,
 the ref's colours/radii/shadows. Nav bars and photos can be image crops; everything that will be
 lifted or animated must be real DOM.
 
 ---
 
-### 6.14 Scene shapes (proven whole-scene patterns — pick one per beat)
+### 7.14 Scene shapes (proven whole-scene patterns — pick one per beat)
 | Shape | What happens | Build with |
 |---|---|---|
 | **Kinetic type beats** | the words *are* the motion: a line swaps words in place, or a statement builds line by line to a pop payoff | `blockWipe`/`maskRise`/`popIn`, hard cuts on the beat |
@@ -515,44 +485,14 @@ lifted or animated must be real DOM.
 | **Prompt → answer** | a prompt types into an input, the product answers | `typewriter` + streaming lines (`fadeIn` stagger) |
 | **Data hero** | one real number/chart carries the beat | `lineDraw` chart / count only with real data |
 | **Title card** | one line or card, one restrained move, then stillness | `blurIn` or `maskRise`, hold |
-| **Logo lockup** | the mark comes to exist: assembles, draws on, or blooms, then holds | recipe 6.5 (+ `lineDraw` outline, `breathe`) |
-
-## 7. Editing knowledge
-
-- **Continuous vs cut.** Premium films avoid hard cuts: connect scenes by moving *through*
-  something (push into a screen, whip, blob wipe, fade through black). Kinetic films cut hard on
-  the beat; use a cut when the energy must jump.
-- **Match cut:** end a scene on a shape/position, start the next with a similar shape in the same
-  place (rosette → bullet, pill → ring, screen → full frame).
-- **Transition inventory per film:** 2–4 kinds, repeated. Using every transition once looks cheap.
-- **Transitions carry meaning:** crossfade = "this continues" · hard cut = "wake up", disruption,
-  register shift · slow dissolve = "drift with me" · push/whip = travel · iris/zoom = focus on one
-  thing. Spend the biggest transition on the centrepiece (the hero reveal, the logo); connective
-  beats get quiet ones. A 5–7 beat brand film wants 1–2 showpiece transitions, not more.
-- **Declare the rhythm** before building (e.g. `fast-fast-SLOW-fast-WHIP-hold`) and check the
-  draft against it.
-- **Pacing curve:** calm hook → energy rises through the proof beats → one peak (whip / biggest
-  move) around 50–65 % → slows into trust → still end card.
-- **Beat grid:** with a pulse, place reveals on beats (`t = start + n × 60/bpm`). Transitions start
-  half a beat early so the swap lands on the beat.
-- **J/L audio:** the score's chord change or riser starts 0.3–1.0 s *before* the visual section
-  change; the chime lands *on* the logo frame.
-- **Breathing room:** after a dense scene, give 0.5–1 s of calmer motion. The end card holds ≥ 1.5 s.
-- **Eye trace:** the next thing appears where the eye already is (near the last element or along
-  the motion direction). Don't make the viewer search.
-- **Safe zones:** 16:9 keep text inside 4 % margins; 9:16 keep text out of the top 12 % and bottom
-  20 % (platform UI), and captions in the middle band.
-
----
+| **Logo lockup** | the mark comes to exist: assembles, draws on, or blooms, then holds | recipe 7.5 (+ `lineDraw` outline, `breathe`) |
 
 ## 8. Typography craft
 
-### 8.1 Fonts bundled (`engine/fonts.css`, latin)
-Cormorant Garamond 500/600 (+500 italic) · Instrument Serif 400 (+italic) · Fraunces 400/600/800
-(+italic) · Playfair Display 400/600/800 (+italic) · DM Serif Display 400 (+italic) · Inter
-400–800 · Manrope 400/600/800 · Plus Jakarta Sans 400/600/800 · Space Grotesk 400/500/700 ·
-JetBrains Mono 400/700. Need another? `npm i @fontsource/<name>` and copy the woff2 + add an
-`@font-face` in the film's `<style>`. `check.mjs` warns on any font without a face.
+### 8.1 Fonts (web edition: Google Fonts link in the film's <head>)
+Load fonts with one Google Fonts `<link>` in the film head, e.g.
+`<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700;800&display=block" rel="stylesheet">`.
+Recommended families: Cormorant Garamond · Instrument Serif · Fraunces · Playfair Display · DM Serif Display · Inter · Manrope · Plus Jakarta Sans · Space Grotesk · JetBrains Mono. Use `display=block` so frames never render in a fallback font.
 
 ### 8.2 Setting
 - Serif display lowercase: letter-spacing −.012em, leading 1.02–1.08, weight 500.
@@ -573,74 +513,39 @@ of text (use padding on the element: `left:260px;right:260px`).
 
 ---
 
-## 9. Assets
+## 9. Audio
 
-```bash
-python3 $SKILL/tools/prep_image.py probe  ref.png row=150          # find screen edges (brightness jumps)
-python3 $SKILL/tools/prep_image.py crop   ref.png assets/hero.png 327 127 1130 596 --scale 2 --sharpen
-python3 $SKILL/tools/prep_image.py unwarp ref.png assets/scr.png 292,90 948,112 1022,540 330,555 --size 1600x940
-python3 $SKILL/tools/prep_image.py key    logo.png assets/logo.png --bg auto --tol 60
-python3 $SKILL/tools/prep_image.py palette ref.png --n 6
-FPS=30 $SKILL/tools/prep_video.sh footage.mp4 assets/clip          # image sequence
-```
-- Always `Read` (view) a prepared image once before using it.
-- Screens: keep the crop's aspect ratio equal to the device screen box (1150×672 = 1.711).
-- Logos: key to transparent, keep the original proportions (set only height in CSS).
-- Footage of people: only if the user supplies it; never generate or fake people.
+`scripts/synth.py cues.json assets/score.wav` renders an original score + SFX (+ optional VO
+placement with ducking) from a JSON cue sheet (see `scripts/cues.example.json` and the docstring
+at the top of synth.py). Needs Python 3 with numpy + scipy (ffmpeg only for VO).
+- Chord changes at scene starts; `pulse` from the reveal, `skip` whips, stop before the end card.
+- One SFX per motion event (MOTION.md §16): lift → `shimmer`, whip → `whoosh`, blob/band →
+  `swoosh`, land → `impact`, UI/karaoke → `click`, glitch → `tick`/`glitch`, pop → `pop`, new
+  section → `riser` ending on it, logo → `chime`. Use the times returned by kit calls.
+- Voiceover: split it into phrases (silences), place each phrase at its caption's reveal time
+  (`vo.phrases: [{src:[a,b], at:t}]`), `tempo` ≤ 1.08 to fit, `duck` 0.5–0.6. Re-time captions to
+  the words, never the words to the captions.
+- Target ≈ −14 LUFS for web/social.
 
----
+## 10. Verify — prove it before you ship
 
-## 10. Audio
+### 10.1 Timeline audit (no browser needed — do it on paper, every film)
+Write a table from your code: every `.t` element → reveal start, fully-visible start, exit start.
+Check: fully-visible time ≥ 0.6 s + 0.22 s × words · no two text elements visible at once in the
+same region · every scene's content hidden outside its `data-in/out` · last reveal ends by the
+finish-by time · timeline length ≤ `data-duration` (ambient loops may run past) · every Build Sheet
+row has code and every copy line appears exactly once · every kit call's target id exists.
+Also re-read the code for the banned list (§1 law 4) — search for `Math.random`, `Date.`,
+`setTimeout`, `repeat: -1`, `@keyframes`, `transition:`.
 
-1. Copy `template/cues.json`, set `duration`, `mood`, `bpm`, chord changes at scene starts.
-2. Add SFX from the Build Sheet (use the times returned by kit calls: `MK.karaoke` word times →
-   `click`, `MK.glitchIn` ticks → `tick`, whip start → `whoosh`, lifts → `shimmer`, logo → `chime`).
-3. `pulse.from/to/skip`: start with the reveal, stop for whips and before the end card.
-4. Voiceover: `python3 $SKILL/audio/align_vo.py vo.m4a --asr` → phrase list. Map each phrase to
-   its caption's reveal time (`"at"`), set `"tempo"` (≤ 1.08) if it must fit, `"duck": 0.55`.
-   Then re-time captions so each appears as its words start. Re-run `synth.py`.
-5. Set `data-audio` on the root; the renderer muxes it (trimmed to duration). Target loudness for
-   web/social ≈ −14 LUFS (`ffmpeg -i out.mp4 -af ebur128 -f null -` to measure).
+### 10.1b Pixel check (when you can render snapshots)
+`node scripts/render.mjs <film>/index.html --at scenes` → read `contact-sheet.png`; add
+`--at t1,t2,…` for every transition midpoint. `node scripts/check.mjs <film>/index.html` runs the
+automated gate (safe area, overlaps, reading time, `data-clear` collisions, contrast against the
+real background, busy backgrounds, empty frames, flashes). Fix every error; explain every warning
+you keep.
 
----
-
-## 11. QA
-
-### 11.1 `check.mjs` ERRORs → must fix
-Math.random / clocks / repeat:-1 / play() / fetch → replace with kit equivalents. External URL →
-download to assets. Missing file / script error → fix path or code. No `Film.build` / no
-`data-duration` → fix the root.
-
-### 11.1b What check.mjs measures (so you know what "clean" means)
-Static: determinism bans, external URLs, CSS animations/transitions, fonts without faces.
-Runtime (every 0.2 s): script errors, missing files, timeline length, every `.t` text box —
-outside the 4 % safe area, overlapping another text, overlapping a **protected element**
-(`data-clear`), and too short to read. Pixel pass: each caption's **contrast** against what is
-actually behind it (text hidden, background measured), **busy backgrounds** (texture behind text),
-**near-empty frames** (≥ 1 s of flat colour mid-film) and **harsh flashes** (≥ 75 % of the frame
-brightening > 20 % within 0.1 s). `--fast` skips the pixel pass; `--strict` fails on warnings.
-
-**Mark what text must never cover** with `data-clear="name"`: device screens being showcased,
-the logo, faces in footage, the product photo. Example: `<div class="mk-screen" data-clear="screen">`
-or on a kit element after building: `lap.screen.dataset.clear = "screen"`.
-
-**Definition of done:** `check.mjs --strict` passes, or every remaining warning is listed in the
-delivery note with the reason it is intentional.
-
-### 11.2 Warnings → judge
-- *outside safe area* → move text in (unless it's intentionally full-bleed decoration; then drop
-  its `t` class).
-- *overlapping text* → real problem unless one is a dimmed list item designed to sit behind.
-- *readable for only Xs* → lengthen the hold, shorten the copy, or reveal faster.
-- *timeline runs past the end* → shorten the last tweens (an ambient loop is fine).
-- *font has no @font-face* → add the face or switch to a bundled font.
-- *low contrast* → darker/lighter text, a scrim behind it, or move it to a calmer area.
-- *busy background* → blur/darken the region behind (DOF copy, recipe 6.1), a soft scrim, or move.
-- *overlaps protected element* → move the text beside the element; never over a showcased screen.
-- *near-empty frame* → something should be moving or visible; tighten the gap or fill it.
-- *harsh brightness jump* → ease background changes over ≥ 0.4 s or cover them with a wipe.
-
-### 11.3 Visual checklist (on the contact sheet)
+### 10.2 Visual checklist (on the contact sheet)
 - [ ] Every headline complete, spelled right, not clipped, not over busy content.
 - [ ] No element accidentally stretched (a CSS rule hitting the wrong `img` is common).
 - [ ] Device angle believable (keyboard not dominating; lid not flipped).
@@ -649,7 +554,7 @@ delivery note with the reason it is intentional.
 - [ ] Palette consistent; one accent per scene.
 - [ ] End frame: logo sharp and centred, tagline readable, nothing else moving.
 
-### 11.4 Known pitfalls → fixes (learned in production)
+### 10.3 Known pitfalls → fixes (learned in production)
 | Symptom | Cause | Fix |
 |---|---|---|
 | Image stretched to full screen height | generic `.scr img{height:100%}` also hits a nav/logo img | give special imgs a more specific selector (`.scr img.nav{height:63px}`) |
@@ -668,55 +573,7 @@ delivery note with the reason it is intentional.
 
 ---
 
-## 12. Render and deliver
-
-```bash
-node $SKILL/bin/render.mjs films/<name> --out films/<name>/out/<name>.mp4 [--workers 4] [--crf 17]
-ffprobe -v error -show_entries format=duration:stream=codec_name,width,height -of compact films/<name>/out/<name>.mp4
-ffmpeg -v error -y -i films/<name>/out/<name>.mp4 -vf "select='not(mod(n\,150))',scale=480:-1,tile=3x2" -frames:v 1 strip.jpg
-```
-Other formats: set `data-width/height` (1080×1920 for 9:16, 1080×1080 for 1:1) and re-layout —
-never scale a 16:9 layout into 9:16. `--from/--to` renders a section for quick fixes.
-Deliver: the MP4 path, duration, resolution, and a one-paragraph summary of what's in each beat
-plus any deviations from the brief (and why).
-
----
-
-## 12.5 Review loop (where the user sees the work)
-
-| Pass | Collaborative | Autonomous |
-|---|---|---|
-| Concept (DIRECTOR §4) | show 5 pitches, wait | pick, state choice + the typical one left behind |
-| Storyboard (DIRECTOR §10) | frame table, wait; optional sketch sheet (`--at scenes` on the static layout), wait | post both, continue |
-| Build | revise only the frames named in feedback | — |
-| Final look | show contact sheet (+ draft MP4), ask "render, or what changes?" | show contact sheet with the delivery |
-
-Render is the expensive, final step: in collaborative runs render only after the final-look
-answer. Every delivery reports the real duration, resolution, the contact sheet and any
-deviations from the brief.
-
-## 13. Cost-aware mode (smaller / cheaper models — same quality bar)
-
-If you are a smaller or local model: follow this section to the letter. Your job is not to be
-inventive in code — it is to assemble proven parts precisely and verify them. The quality lives in
-the kit, the recipes, `EXAMPLES.md` and the QA loop.
-
-
-Quality comes from the kit, the recipes and the QA loop — not from improvising. A smaller model
-gets the same result by following the path exactly:
-
-1. **Never write an effect the kit already has.** Look it up in §4 / §6 first. Copy recipes
-   verbatim, then change ids, times, colours, copy.
-2. **Start from `template/index.html`** or the closest example (`examples/aasthi`,
-   `examples/showcase`). Copy its structure; don't redesign the layer stack.
-3. **Work from the Build Sheet row by row.** One kit call per row. Keep the scene comments.
-4. **Static layout → snapshot → then animate.** Most visual bugs are layout bugs; catch them
-   with one snapshot before writing the timeline.
-5. **Budget your checks:** `check.mjs` after every scene block you add (fast); snapshots only at
-   hold midpoints; `--draft` once; the full render once at the end.
-6. **Edit surgically:** change the specific lines (targeted replacements), don't regenerate the
-   file. Don't re-read large files you just wrote; re-read only the part you are fixing.
-7. **Stop conditions:** 0 errors, all warnings judged, checklist §11.3 all yes. If a fix doesn't
-   work after two tries, simplify the effect (e.g. `blurIn` instead of a custom reveal) rather
-   than piling on changes.
-8. **Custom 3D is optional.** If a CUSTOM effect is risky, deliver the kit version and say so.
+### 10.4 After the render
+`ffprobe` the MP4 (duration = `data-duration`, 1920×1080 or the chosen size, an audio stream);
+look at a 6-frame strip:
+`ffmpeg -i film.mp4 -vf "select='not(mod(n\,150))',scale=480:-1,tile=3x2" -frames:v 1 strip.jpg`.
