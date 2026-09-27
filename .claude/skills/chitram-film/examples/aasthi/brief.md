@@ -1,7 +1,7 @@
 # AASTHI — reference Production Brief (as delivered)
 
 This is the brief behind `examples/aasthi/index.html`. It shows the target voice and level of
-detail for DIRECTOR.md §9.1. The original client prompt was 30 s with no narration; a client
+detail for DIRECTOR.md §9. The original client prompt was 30 s with no narration; a client
 voiceover (36.2 s) arrived later, so the "VO REVISION" section at the end records how the film
 was re-timed. The code implements the revised timing.
 
