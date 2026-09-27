@@ -40,7 +40,12 @@ for (const m of html.matchAll(/<video[^>]*src="([^"]+)"/g)) if (!/\.webm$/i.test
 // fonts
 const faces = new Set();
 const fontCss = [html];
-for (const m of html.matchAll(/<link[^>]*href="([^"]+\.css)"/g)) { const p = path.join(dir, m[1]); if (fs.existsSync(p)) fontCss.push(fs.readFileSync(p, "utf8")); }
+const sharedEngine = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..", "engine");
+for (const m of html.matchAll(/<link[^>]*href="([^"]+\.css)"/g)) {
+  let p = path.join(dir, m[1]);
+  if (!fs.existsSync(p) && m[1].startsWith("engine/")) p = path.join(sharedEngine, m[1].slice(7));
+  if (fs.existsSync(p)) fontCss.push(fs.readFileSync(p, "utf8"));
+}
 for (const css of fontCss) for (const m of css.matchAll(/@font-face\s*{[^}]*font-family\s*:\s*["']?([^"';]+)["']?/g)) faces.add(m[1].trim().toLowerCase());
 const generic = new Set(["serif", "sans-serif", "monospace", "system-ui", "ui-sans-serif", "cursive", "inherit", "initial"]);
 const vars = {};

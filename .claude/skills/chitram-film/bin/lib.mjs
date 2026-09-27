@@ -4,6 +4,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+const SKILL_ENGINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "engine");
 
 const MIME = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css",
@@ -19,6 +22,11 @@ export function serve(rootDir, listenPort = 0) {
     let file = path.join(root, url);
     if (!file.startsWith(root)) { res.writeHead(403); return res.end(); }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, "index.html");
+    // projects may omit their own engine/ copy: fall back to the skill's shared engine folder
+    if (!fs.existsSync(file) && url.startsWith("/engine/")) {
+      const shared = path.join(SKILL_ENGINE, url.slice("/engine/".length));
+      if (shared.startsWith(SKILL_ENGINE) && fs.existsSync(shared)) file = shared;
+    }
     if (!fs.existsSync(file)) { res.writeHead(404); return res.end("not found: " + url); }
     const stat = fs.statSync(file);
     const type = MIME[path.extname(file).toLowerCase()] || "application/octet-stream";

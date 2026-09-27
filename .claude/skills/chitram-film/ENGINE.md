@@ -123,7 +123,8 @@ films/<name>/
   index.html        the film (one page)
   brief.md          Production Brief + Build Sheet (from DIRECTOR.md)
   cues.json         audio cue sheet
-  engine/           copied by init (runtime, kit, fonts, gsap) — do not edit per film
+  engine/           copied by init (runtime, kit, fonts, gsap) — do not edit per film; optional:
+                    if absent, the renderer and check serve the skill's shared engine/
   assets/           screens, logo, photos, footage, score.wav
   snapshots/        check images (generated)
   out/              renders (generated)
